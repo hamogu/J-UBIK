@@ -94,6 +94,8 @@ def create_mock_erosita_data(tel_info, file_info, grid_info, prior_info, plot_in
 
     e_min = grid_info['energy_bin']['e_min']
     e_max = grid_info['energy_bin']['e_max']
+
+    # FIXME not used
     energy_range = np.array(e_max) - np.array(e_min)
 
     key, subkey = random.split(key)
@@ -107,10 +109,15 @@ def create_mock_erosita_data(tel_info, file_info, grid_info, prior_info, plot_in
                                      e_ref=grid_info['energy_bin']['e_ref'],
                                      priors=prior_info)
 
+    # FIXME why is this called here, makes no sense
     jft.random_like(subkey, sky.domain)
+
     # Generate response func
     sky_comps = sky_model.sky_model_to_dict()
+
+    # FIXME unnessesary split
     key, subkey = random.split(key)
+
     output_path = create_output_directory(file_info['res_dir'])
     mock_sky_position = jft.Vector(jft.random_like(subkey, sky.domain))
     masked_mock_data = response_dict['R'](sky(mock_sky_position))
