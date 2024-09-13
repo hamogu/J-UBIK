@@ -5,12 +5,14 @@
 
 # %
 
+import numpy as np
 from typing import Tuple, Optional
 
 from astropy import units
 from astropy.coordinates import SkyCoord
 
 from .reconstruction_grid import Grid
+from .jwst_data import JwstData
 
 
 def _get_world_location(config: dict) -> SkyCoord:
@@ -189,6 +191,30 @@ def config_transform(config: dict):
                 continue
         elif isinstance(val, dict):
             config_transform(val)
+
+
+def get_psf_extension_from_config(
+    config: dict,
+    jwst_data: JwstData,
+    reconstruction_grid: Grid,
+):
+    psf_pixels = config['telescope']['psf'].get('psf_pixels')
+    if psf_pixels is not None:
+        psf_ext = int(config['telescope']['psf']['psf_pixels'] // 2)
+        psf_ext = [int(np.sqrt(jwst_data.dvol) * psf_ext / dist)
+                   for dist in reconstruction_grid.distances]
+
+    psf_arcsec = config['telescope']['psf'].get('psf_arcsec')
+    if psf_arcsec is not None:
+        psf_ext = [int((psf_arcsec*units.arcsec).to(units.deg) / 2 / dist)
+                   for dist in reconstruction_grid.distances]
+
+    if psf_arcsec is None and psf_pixels is None:
+        raise ValueError(
+            'Need to provide either `psf_arcsec` or `psf_pixels`.'
+        )
+
+    return psf_ext
 
 
 def insert_spaces_in_lensing(cfg):
