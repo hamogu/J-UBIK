@@ -63,23 +63,16 @@ class Color(u.Quantity):
 
     def redshift(self, z: float):
         """
-        Apply a redshift to the current color object.
+        Corresponding color at redshift z.
 
         Parameters
         ----------
-        z : float
-            The redshift factor to apply.
+        z: The redshift
 
         Returns
         -------
-        Color
-            A new Color object with the wavelength redshifted by
-            a factor of (1 + z).
+        Redshifted Color: lambda(z) = lambda (1 + z).
 
-        Raises
-        ------
-        ValueError
-            If the redshift factor `z` is negative.
         """
         return Color((1+z)*self.wavelength)
 

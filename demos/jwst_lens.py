@@ -16,28 +16,29 @@ from matplotlib.colors import LogNorm
 from astropy import units as u
 
 import jubik0 as ju
-from jubik0.library.likelihood import (
+from jubik0.likelihood import (
     connect_likelihood_to_model, build_gaussian_likelihood)
-from jubik0.jwst.jwst_data import JwstData
-from jubik0.jwst.masking import get_mask_from_index_centers
-from jubik0.jwst.config_handler import (
+from jubik0.instruments.jwst.jwst_data import JwstData
+from jubik0.instruments.jwst.masking import get_mask_from_index_centers
+from jubik0.instruments.jwst.config_handler import (
     build_reconstruction_grid_from_config,
     build_coordinates_correction_prior_from_config,
     build_filter_zero_flux,
     insert_spaces_in_lensing)
-from jubik0.jwst.wcs import (subsample_grid_centers_in_index_grid)
-from jubik0.jwst.jwst_data_model import build_data_model
-from jubik0.jwst.jwst_plotting import (
+from jubik0.instruments.jwst.wcs import subsample_grid_centers_in_index_grid
+
+from jubik0.instruments.jwst.jwst_response import build_jwst_response
+from jubik0.instruments.jwst.jwst_plotting import (
     build_plot_sky_residuals,
     build_plot_source,
     build_color_components_plotting,
     build_plot_lens_system, get_alpha_nonpar,
     rgb_plotting,
 )
-from jubik0.jwst.filter_projector import FilterProjector
-from jubik0.jwst.pretrain_model import pretrain_lens_system
+from jubik0.instruments.jwst.filter_projector import FilterProjector
+from jubik0.instruments.jwst.pretrain_model import pretrain_lens_system
 
-from jubik0.jwst.color import Color, ColorRange
+from jubik0.instruments.jwst.color import Color, ColorRange
 
 from charm_lensing.lens_system import build_lens_system
 
@@ -152,7 +153,7 @@ for fltname, flt in cfg['files']['filter'].items():
         std = jwst_data.std_inside_extrema(
             reconstruction_grid.world_extrema(ext=psf_ext))
 
-        data_model = build_data_model(
+        data_model = build_jwst_response(
             {ekey: sky_model_with_keys.target[ekey]},
             reconstruction_grid=reconstruction_grid,
             subsample=cfg['telescope']['rotation_and_shift']['subsample'],

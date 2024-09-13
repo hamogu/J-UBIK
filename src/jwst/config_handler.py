@@ -114,32 +114,3 @@ def define_mock_output(config: dict):
         f'{reco_shape}pix',
         f'rot{rot_string}_shf{shi_string}',
         f'{method_string}_{output_attach}')
-
-
-def insert_spaces_in_lensing(cfg):
-    lens_fov = cfg['grid']['fov']
-    lens_npix = cfg['grid']['sdim']
-    lens_padd = cfg['grid']['s_padding_ratio']
-    lens_npix = (lens_npix, lens_npix)
-    lens_dist = [lens_fov/p for p in lens_npix]
-    lens_energy_bin = cfg['grid']['energy_bin']
-    lens_space = dict(padding_ratio=lens_padd,
-                      Npix=lens_npix,
-                      distance=lens_dist,
-                      energy_bin=lens_energy_bin
-                      )
-
-    source_fov = cfg['grid']['source_grid']['fov']
-    source_npix = cfg['grid']['source_grid']['sdim']
-    source_padd = cfg['grid']['source_grid']['s_padding_ratio']
-    source_npix = (source_npix, source_npix)
-    source_dist = [source_fov/p for p in source_npix]
-    source_energy_bin = cfg['grid']['energy_bin']
-    source_space = dict(padding_ratio=source_padd,
-                        Npix=source_npix,
-                        distance=source_dist,
-                        energy_bin=source_energy_bin,
-                        )
-
-    cfg['lensing']['spaces'] = dict(
-        lens_space=lens_space, source_space=source_space)
