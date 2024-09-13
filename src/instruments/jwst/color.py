@@ -28,6 +28,7 @@ class Color(u.Quantity):
     ValueError
         If the input quantity has an unsupported physical type.
     """
+
     def __init__(self, quantity: u.Quantity):
         if not isinstance(quantity, u.Quantity):
             raise IOError('Instantiate with a quantity that has units')
@@ -104,11 +105,16 @@ class ColorRange():
     AssertionError
         If `start` or `end` are not instances of the Color class.
     """
+
     def __init__(self, start: Color, end: Color):
         """Initialize the ColorRange object."""
         assert isinstance(start, Color) and isinstance(end, Color)
         self.start = start
         self.end = end
+
+    @property
+    def center(self):
+        return Color((self.end.energy - self.start.energy) / 2 + self.start.energy)
 
     def __contains__(self, item: Color):
         """Check if a given Color is within the range of this ColorRange."""
