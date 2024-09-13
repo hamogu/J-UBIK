@@ -21,8 +21,8 @@ grid:
 
   source_grid:
     sdim: 256
-    fov: 3
-    s_padding_ratio: 1.0
+    fov: 2
+    s_padding_ratio: 1.5
 
   energy_unit: eV
   energy_bin:
