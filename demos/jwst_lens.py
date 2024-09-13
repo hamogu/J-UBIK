@@ -334,8 +334,7 @@ def plot(samples: jft.Samples, state: jft.OptimizeVIState):
         # plot_lens(samples, state, parametric=parametric_flag)
 
 
-pretrain_position = pretrain_lens_system(
-    cfg, lens_system)
+pretrain_position = pretrain_lens_system(cfg, lens_system)
 
 
 cfg_mini = ju.get_config(config_path)["minimization"]

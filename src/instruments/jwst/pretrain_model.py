@@ -67,8 +67,9 @@ def build_plot_pretrain(
     model: jft.Model,
     plotting_config: dict = {},
 ):
-    from jubik0.jwst.jwst_plotting import (_plot_data_data_model_residuals,
-                                           _get_model_samples_or_position)
+    from jubik0.instruments.jwst.jwst_plotting import (
+        _plot_data_data_model_residuals,
+        _get_model_samples_or_position)
 
     import matplotlib.pyplot as plt
     import numpy as np
@@ -129,12 +130,12 @@ def pretrain_model(
     model: jft.Model,
     plotting_config: dict = {}
 ):
-    likelihood = ju.library.likelihood.build_gaussian_likelihood(
+    likelihood = ju.likelihood.build_gaussian_likelihood(
         data=data_std[0], std=data_std[1])
     likelihood = likelihood.amend(
         model, domain=jft.Vector(model.domain))
 
-    n_dof = ju.calculate_n_constrained_dof(likelihood)
+    n_dof = ju.get_n_constrained_dof(likelihood)
     minpars = ju.MinimizationParser(cfg_mini, n_dof, verbose=False)
     key = random.PRNGKey(cfg_mini.get('key', 42))
     key, rec_key = random.split(key, 2)
