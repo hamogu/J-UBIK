@@ -21,8 +21,8 @@ grid:
 
   source_grid:
     sdim: 256
-    fov: 2
-    s_padding_ratio: 1.5
+    fov: 3
+    s_padding_ratio: 1.0
 
   energy_unit: eV
   energy_bin:
@@ -58,9 +58,10 @@ grid:
 
 telescope:
   psf:
-    webbpsf_path: './data/JWST/WebbPsf/webbpsf-data-LATEST-2/'
+    webbpsf_path: './data/JWST/WebbPsf/webbpsf-data-LATEST/'
     psf_library: './data/JWST/psf_library'
-    psf_pixels: 32  # FIXME: Check again, should be set by the fov
+    # psf_pixels: 32  # FIXME: Check again, should be set by the fov
+    psf_arcsec: 3.5
 
   zero_flux:
     prior: ['lognormal', 0.9, 4]
@@ -93,9 +94,9 @@ telescope:
 
 files:
   # res_dir: './results/jwst_lens/mfreworked/test'
-  res_dir: './results/jwst_lens/mfreworked/all_data_04_noswap'
+  res_dir: './results/jwst_lens/mfreworked/test'
 
-  pretrain_path: './results/jwst_lens/mfreworked/all_filters_01/config.yaml'
+  pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
 
   filter:
 
@@ -390,7 +391,7 @@ minimization:
     key: 12092024
     resume: False
     n_total_iterations: 40
-    pretraining_steps: Null
+    pretraining_steps: 3
 
     delta:
       switches: [0, 10, 15]

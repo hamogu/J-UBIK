@@ -9,7 +9,7 @@ from jax import random
 
 import nifty8.re as jft
 import jubik0 as ju
-from jubik0.jwst.config_handler import insert_spaces_in_lensing
+from .config_handler import insert_spaces_in_lensing
 from charm_lensing.lens_system import build_lens_system, LensSystem
 
 

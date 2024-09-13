@@ -129,7 +129,7 @@ def build_jwst_response(
         kwargs_nufft: dict, (sky_as_brightness)
         kwargs_sparse: dict, (extend_factor, to_bottom_left)
         world_extrema: Tuple[SkyCoord]
-        coordinate_correction: Optional[dict]
+        shift_and_rotation_correction: Optional[dict]
             domain_key: str
             priors: dict
                 - shift: Mean and sigma for the Gaussian distribution
@@ -142,7 +142,8 @@ def build_jwst_response(
         filter: str
         center_pix: tuple, pixel according to which to evaluate the psf model
         webbpsf_path: str
-        fov_pixels: int, how many pixles considered for the psf,
+        fov_pixels: Optional[int], how many pixles considered for the psf
+        fov_arcsec: Optional[float], the arcseconds for the psf evaluation
 
     data_mask: ArrayLike
         The mask on the data
@@ -183,8 +184,8 @@ def build_jwst_response(
         center_pixel=psf_kwargs['center_pixel'],
         webbpsf_path=psf_kwargs['webbpsf_path'],
         psf_library_path=psf_kwargs['psf_library_path'],
-        fov_pixels=psf_kwargs.get('fov_pixels'),
-        fov_arcsec=psf_kwargs.get('fov_arcsec'),
+        psf_pixels=psf_kwargs.get('psf_pixels'),
+        psf_arcsec=psf_kwargs.get('psf_arcsec'),
         subsample=subsample,
     ) if len(psf_kwargs) != 0 else None
     psf = instantiate_psf(psf_kernel)

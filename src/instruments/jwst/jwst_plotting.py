@@ -1,21 +1,21 @@
-from charm_lensing.lens_system import LensSystem
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize, LogNorm
-import numpy as np
-
 from os.path import join
 from os import makedirs
+from typing import Union, Optional
+
+import numpy as np
+from numpy.typing import ArrayLike
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize, LogNorm
+
 
 import nifty8.re as jft
 
-from jubik0.jwst.mock_data.mock_evaluation import redchi2
-from jubik0.jwst.mock_data.mock_plotting import display_text
-from jubik0.library.sky_colormix import ColorMix
-from jubik0.jwst.rotation_and_shift.coordinates_correction import CoordinatesCorrection
-from jubik0.jwst.filter_projector import FilterProjector
+from .mock_data.mock_evaluation import redchi2
+from .mock_data.mock_plotting import display_text
+from .rotation_and_shift.coordinates_correction import CoordinatesCorrection
+from .filter_projector import FilterProjector
 
-from typing import Tuple, Union, Optional
-from numpy.typing import ArrayLike
+from charm_lensing.lens_system import LensSystem
 
 
 def find_closest_factors(number):
@@ -338,7 +338,7 @@ def build_plot_model_samples(
 
 
 def build_color_components_plotting(
-    sky_model: ColorMix,
+    sky_model,
     results_directory: str,
     substring='',
 ):

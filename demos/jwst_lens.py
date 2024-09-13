@@ -134,10 +134,20 @@ for fltname, flt in cfg['files']['filter'].items():
         data_key = f'{fltname}_{ekey}_{ii}'
 
         # Loading data, std, and mask.
-        psf_ext = int(cfg['telescope']['psf']['psf_pixels'] // 2)
-        psf_ext = [int(np.sqrt(jwst_data.dvol) * psf_ext / dist)
-                   for dist in reconstruction_grid.distances]
-        # print(psf_ext)
+        psf_pixels = cfg['telescope']['psf'].get('psf_pixels')
+        if psf_pixels is not None:
+            psf_ext = int(cfg['telescope']['psf']['psf_pixels'] // 2)
+            psf_ext = [int(np.sqrt(jwst_data.dvol) * psf_ext / dist)
+                       for dist in reconstruction_grid.distances]
+
+        psf_arcsec = cfg['telescope']['psf'].get('psf_arcsec')
+        if psf_arcsec is not None:
+            psf_ext = [int((psf_arcsec*u.arcsec).to(u.deg) / 2 / dist)
+                       for dist in reconstruction_grid.distances]
+
+        if psf_arcsec is None and psf_pixels is None:
+            raise ValueError('Need to provide either `psf_arcsec` or '
+                             '`psf_pixels`.')
 
         mask = get_mask_from_index_centers(
             np.squeeze(subsample_grid_centers_in_index_grid(
@@ -153,16 +163,17 @@ for fltname, flt in cfg['files']['filter'].items():
         std = jwst_data.std_inside_extrema(
             reconstruction_grid.world_extrema(ext=psf_ext))
 
-        data_model = build_jwst_response(
+        jwst_response = build_jwst_response(
             {ekey: sky_model_with_keys.target[ekey]},
-            reconstruction_grid=reconstruction_grid,
             subsample=cfg['telescope']['rotation_and_shift']['subsample'],
 
             rotation_and_shift_kwargs=dict(
+                reconstruction_grid=reconstruction_grid,
                 data_dvol=jwst_data.dvol,
                 data_wcs=jwst_data.wcs,
                 data_model_type=cfg['telescope']['rotation_and_shift']['model'],
                 kwargs_linear=cfg['telescope']['rotation_and_shift']['kwargs_linear'],
+                world_extrema=reconstruction_grid.world_extrema(ext=psf_ext),
                 shift_and_rotation_correction=dict(
                     domain_key=data_key + '_correction',
                     priors=build_coordinates_correction_prior_from_config(
@@ -177,14 +188,13 @@ for fltname, flt in cfg['files']['filter'].items():
                     reconstruction_grid.center)[0],
                 webbpsf_path=cfg['telescope']['psf']['webbpsf_path'],
                 psf_library_path=cfg['telescope']['psf']['psf_library'],
-                fov_pixels=cfg['telescope']['psf']['psf_pixels'],
+                psf_pixels=cfg['telescope']['psf'].get('psf_pixels'),
+                psf_arcsec=cfg['telescope']['psf'].get('psf_arcsec'),
             ),
 
             transmission=jwst_data.transmission,
 
             data_mask=mask,
-
-            world_extrema=reconstruction_grid.world_extrema(ext=psf_ext),
 
             zero_flux=dict(
                 dkey=data_key,
@@ -197,7 +207,7 @@ for fltname, flt in cfg['files']['filter'].items():
             data=data,
             std=std,
             mask=mask,
-            data_model=data_model,
+            data_model=jwst_response,
             data_dvol=jwst_data.dvol,
             data_transmission=jwst_data.transmission,
         )
@@ -206,7 +216,7 @@ for fltname, flt in cfg['files']['filter'].items():
             jnp.array(data[mask], dtype=float),
             jnp.array(std[mask], dtype=float))
         likelihood = likelihood.amend(
-            data_model, domain=jft.Vector(data_model.domain))
+            jwst_response, domain=jft.Vector(jwst_response.domain))
         likelihoods.append(likelihood)
 
 

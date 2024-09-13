@@ -7,7 +7,7 @@
 from .version import __version__
 from .utils import (save_to_pickle, load_from_pickle, get_config, save_to_yaml,
                     copy_config, create_output_directory,
-                    coord_center, get_stats)
+                    coord_center, get_stats, save_config_copy_easy)
 from .plot import (plot_result, plot_histograms,
                    plot_sample_averaged_log_2d_histogram, plot_rgb)
 from .sugar_plot import (plot_pspec, plot_sample_and_stats,

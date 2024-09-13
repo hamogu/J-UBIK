@@ -143,7 +143,7 @@ def save_to_yaml(dict, filename, dir=None, verbose=True):
 
 
 def copy_config(filename, path_to_yaml_file=None,
-                     output_dir=None, verbose=True):
+                output_dir=None, verbose=True):
     """Convenience function to copy yaml-config files.
 
     Parameters
@@ -165,6 +165,15 @@ def copy_config(filename, path_to_yaml_file=None,
     os.popen(f'cp {current_filename} {join(output_dir, filename)}')
     if verbose:
         print(f"Config file saved to: {join(output_dir, filename)}.")
+
+
+def save_config_copy_easy(path_to_file: str, path_to_save_file: str):
+    from shutil import copy, SameFileError
+    try:
+        copy(path_to_file, path_to_save_file)
+        print(f"Config file saved to: {path_to_save_file}.")
+    except SameFileError:
+        pass
 
 
 def create_output_directory(directory_name):
@@ -218,4 +227,5 @@ def _check_type(arg, type, name=''):
             pass
     elif not isinstance(arg, type):
         print("arg:", arg)
-        raise TypeError("The \"{}\" argument must be of type {}.".format(name, str(type)))
+        raise TypeError(
+            "The \"{}\" argument must be of type {}.".format(name, str(type)))
