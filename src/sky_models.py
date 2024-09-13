@@ -30,7 +30,6 @@ class SkyModel:
     """
 
     def __init__(self, config_file_path=None):
-
         """Gets the parameters needed for building the sky model from the config file
         given the corresponding path.
 
@@ -41,7 +40,8 @@ class SkyModel:
         """
         if config_file_path is not None:
             if not isinstance(config_file_path, str):
-                raise TypeError("The path to the config file needs to be a string")
+                raise TypeError(
+                    "The path to the config file needs to be a string")
             if not config_file_path.endswith('.yaml') and not config_file_path.endswith('.yml'):
                 raise ValueError("The sky model parameters need to be saved in a .yaml or .yml "
                                  "file.")
@@ -165,7 +165,8 @@ class SkyModel:
         sdim = 2 * (sdim,)
         self.s_distances = fov / sdim[0]
         energy_range = np.array(e_max) - np.array(e_min)
-        self.e_distances = energy_range / edim # FIXME: add proper distances for irregular energy grid
+        # FIXME: add proper distances for irregular energy grid
+        self.e_distances = energy_range / edim
 
         if not isinstance(self.e_distances, float) and 'dev_corr' in priors['diffuse'].keys():
             raise ValueError('Grid distances in energy direction have to be regular and defined by'
@@ -178,7 +179,7 @@ class SkyModel:
         else:
             if 'dev_corr' in priors['point_sources'].keys():
                 raise ValueError('Grid distances in energy direction have to be regular and defined by'
-                             'one float of a corrlated field in energy direction is taken.')
+                                 'one float of a corrlated field in energy direction is taken.')
             self._create_point_source_model(sdim, edim, e_padding_ratio,
                                             self.e_distances, priors['point_sources'])
             self.sky = add_models(self.diffuse, self.point_sources)
@@ -286,24 +287,27 @@ class SkyModel:
             self.alpha_cf, self.alpa_pspec = self._create_correlated_field(ext_s_shp,
                                                                            sdistances,
                                                                            prior_dict['plaw'])
-            self.plaw = _apply_slope(self._log_rel_ebin_centers(), self.alpha_cf)
+            self.plaw = _apply_slope(
+                self._log_rel_ebin_centers(), self.alpha_cf)
 
         if 'dev_corr' in prior_dict:
             dev_cf, self.dev_pspec = self._create_correlated_field(ext_e_shp,
                                                                    edistances,
                                                                    prior_dict['dev_cor'])
             self.dev_cf = MappedModel(dev_cf, prior_dict['dev_corr']['prefix']+'xi',
-                                         ext_s_shp, False)
+                                      ext_s_shp, False)
         if 'dev_wp' in prior_dict:
             dev_cf = self._create_wiener_process(edims=len(self._log_rel_ebin_centers()),
                                                  dE=self._log_dE(),
                                                  **prior_dict['dev_wp'])
             self.dev_cf = MappedModel(dev_cf, prior_dict['dev_wp']['name'],
-                                         ext_s_shp, False)
+                                      ext_s_shp, False)
         log_diffuse = GeneralModel({'spatial': self.spatial_cf,
-                                       'freq_plaw': self.plaw,
-                                       'freq_dev': self.dev_cf}).build_model()
-        exp_padding = lambda x: jnp.exp(log_diffuse(x)[:edim, :sdim[0], :sdim[1]])
+                                    'freq_plaw': self.plaw,
+                                    'freq_dev': self.dev_cf}).build_model()
+
+        def exp_padding(x): return jnp.exp(
+            log_diffuse(x)[:edim, :sdim[0], :sdim[1]])
         self.diffuse = jft.Model(exp_padding, domain=log_diffuse.domain)
 
     def _create_point_source_model(self, sdim, edim, e_padding_ratio, edistances, prior_dict):
@@ -344,40 +348,43 @@ class SkyModel:
         ext_e_shp = int(edim * e_padding_ratio)
         point_sources = jft.invgamma_prior(a=prior_dict['spatial']['alpha'],
                                            scale=prior_dict['spatial']['q'])
-        points_log_func = lambda x: jnp.log(point_sources(x[prior_dict['spatial']['key']]))
+
+        def points_log_func(x): return jnp.log(
+            point_sources(x[prior_dict['spatial']['key']]))
         self.points_log_invg = jft.Model(points_log_func,
-                                     domain={prior_dict['spatial']['key']: jft.ShapeWithDtype(sdim)})
+                                         domain={prior_dict['spatial']['key']: jft.ShapeWithDtype(sdim)})
 
         if 'plaw' in prior_dict:
             self.points_alpha = jft.NormalPrior(prior_dict['plaw']['mean'], prior_dict['plaw']['std'],
-                                               name=prior_dict['plaw']['name'],
-                                               shape=sdim, dtype=jnp.float64)
-            points_plaw = _apply_slope(self._log_rel_ebin_centers(), self.points_alpha)
+                                                name=prior_dict['plaw']['name'],
+                                                shape=sdim, dtype=jnp.float64)
+            points_plaw = _apply_slope(
+                self._log_rel_ebin_centers(), self.points_alpha)
             self.points_plaw = jft.Model(lambda x: points_plaw(x),
-                                    domain=points_plaw.domain)
+                                         domain=points_plaw.domain)
 
         if 'dev_corr' in prior_dict:
             points_dev_cf, self.points_dev_pspec = self._create_correlated_field(ext_e_shp,
-                                                                   edistances,
-                                                                   prior_dict['dev_cor'])
+                                                                                 edistances,
+                                                                                 prior_dict['dev_cor'])
             self.points_dev_cf = MappedModel(points_dev_cf, prior_dict['dev_corr']['prefix']+'xi',
-                                         sdim, False)
+                                             sdim, False)
         if 'dev_wp' in prior_dict:
             points_dev_cf = self._create_wiener_process(edims=len(self._log_rel_ebin_centers()),
                                                         dE=self._log_dE(),
                                                         **prior_dict['dev_wp'])
 
             points_dev_cf = MappedModel(points_dev_cf, prior_dict['dev_wp']['name'],
-                                                sdim, False)
+                                        sdim, False)
 
             self.points_dev_cf = jft.Model(lambda x: points_dev_cf(x),
-                                      domain=points_dev_cf.domain)
+                                           domain=points_dev_cf.domain)
 
         log_points = GeneralModel({'spatial': self.points_log_invg,
-                                      'freq_plaw': self.points_plaw,
-                                      'freq_dev': self.points_dev_cf}).build_model()
+                                   'freq_plaw': self.points_plaw,
+                                   'freq_dev': self.points_dev_cf}).build_model()
 
-        exp_padding = lambda x: jnp.exp(log_points(x)[:edim, :, :])
+        def exp_padding(x): return jnp.exp(log_points(x)[:edim, :, :])
         self.point_sources = jft.Model(exp_padding, domain=log_points.domain)
 
     def sky_model_to_dict(self):
@@ -385,7 +392,8 @@ class SkyModel:
         sky_dict = {'sky': self.sky,
                     'diffuse': self.diffuse,
                     'points': self.point_sources}
-        no_none_dict = {key: value for (key, value) in sky_dict.items() if value is not None}
+        no_none_dict = {key: value for (
+            key, value) in sky_dict.items() if value is not None}
         return no_none_dict
 
     def _log_ebin_centers(self):
@@ -430,12 +438,14 @@ class MappedModel(jft.Model):
 
         xi_dom = model.domain[mapped_key]
         if first_axis:
-            new_primals = jft.ShapeWithDtype((ndof,) + xi_dom.shape, xi_dom.dtype)
+            new_primals = jft.ShapeWithDtype(
+                (ndof,) + xi_dom.shape, xi_dom.dtype)
             axs = 0
             self._out_axs = 0
             self._shape = shape + model.target.shape
         else:
-            new_primals = jft.ShapeWithDtype(xi_dom.shape + (ndof,), xi_dom.dtype)
+            new_primals = jft.ShapeWithDtype(
+                xi_dom.shape + (ndof,), xi_dom.dtype)
             axs = -1
             self._out_axs = 1
             self._shape = model.target.shape + shape
@@ -506,15 +516,15 @@ class GeneralModel(jft.Model):
 
                 func = add_functions(func, extracted_dev(dev))
                 domain = domain | dev.domain
-            res_func = lambda x: func(x) if len(func(x).shape) == 3 else jnp.reshape(func(x),
-                                                                                     (1,) + func(x).shape)
+            def res_func(x): return func(x) if len(func(x).shape) == 3 else jnp.reshape(func(x),
+                                                                                        (1,) + func(x).shape)
             res = jft.Model(res_func, domain=domain)
         return res
 
 
 def _apply_slope(freqs, alph):
     if isinstance(alph, jft.Model):
-        res = lambda x: jnp.outer(freqs, alph(x)).reshape(
+        def res(x): return jnp.outer(freqs, alph(x)).reshape(
             freqs.shape + alph.target.shape)
     elif isinstance(alph, float):
         raise NotImplementedError

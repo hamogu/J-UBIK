@@ -21,6 +21,12 @@ Next to many useful generic tools and building blocks, JUBIK comes with a series
 - [eROSITA](#erosita)
 - [James Webb Space Telescope](#jwst)
 
+### Install JWST Dependencies
+<!-- THe gwcs could be potentially removed from the Requirements, such taht UBIK doesn't crash once one doesn't have it.-->
+- gwcs 
+- webbpsf
+
+
 ## Installation
 This package can be installed via pip. 
 
