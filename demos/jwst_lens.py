@@ -339,7 +339,7 @@ pretrain_position = pretrain_lens_system(
 
 
 cfg_mini = ju.get_config(config_path)["minimization"]
-n_dof = ju.calculate_n_constrained_dof(likelihood)
+n_dof = ju.get_n_constrained_dof(likelihood)
 minpars = ju.MinimizationParser(cfg_mini, n_dof, verbose=False)
 key = random.PRNGKey(cfg_mini.get('key', 42))
 key, rec_key = random.split(key, 2)
