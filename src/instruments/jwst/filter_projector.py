@@ -50,6 +50,10 @@ class FilterProjector(jft.Model):
             Corresponding to the energies of the colors in the
             `keys_and_colors` dictionary.
         """
+
+        assert len(sky_domain.shape) == 3, ('FilterProjector expects a sky '
+                                            'with 3 dimensions.')
+
         self.keys_and_colors = keys_and_colors
         if sorted:
             self.keys_and_index = sorted_keys_and_index(keys_and_colors)
@@ -57,8 +61,6 @@ class FilterProjector(jft.Model):
             self.keys_and_index = {
                 key: index for index, key in enumerate(keys_and_colors.keys())
             }
-
-        self.apply = self._get_apply()
         super().__init__(domain=sky_domain)
 
     def get_key(self, color):
@@ -77,14 +79,5 @@ class FilterProjector(jft.Model):
 
         return out_key
 
-    def _get_apply(self):
-        """Returns a function that applies the projection to a given input."""
-        if len(self.keys_and_index) == 1:
-            key, _ = next(iter(self.keys_and_index.items()))
-            return lambda x: {key: x}
-        else:
-            return lambda x: {
-                key: x[index] for key, index in self.keys_and_index.items()}
-
     def __call__(self, x):
-        return self.apply(x)
+        return {key: x[index] for key, index in self.keys_and_index.items()}
