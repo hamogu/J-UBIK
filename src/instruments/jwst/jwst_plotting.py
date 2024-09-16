@@ -449,6 +449,11 @@ def get_alpha_nonpar(lens_system: LensSystem):
         sl_alpha = slm.spectral_index_distribution
         sl_nonpar = slm.reference_frequency_distribution
 
+        if sl_alpha is None:
+            def sl_alpha(_): return np.zeros((12, 12))
+        if sl_nonpar is None:
+            def sl_nonpar(_): return np.zeros((12, 12))
+
     try:
         ll_nonpar = lens_system.lens_plane_model.light_model.parametric(
         )[0].nonparametric()

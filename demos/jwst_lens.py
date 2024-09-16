@@ -240,7 +240,7 @@ plot_residual = build_plot_sky_residuals(
         norm=LogNorm,
         data_config=dict(norm=LogNorm),
         display_pointing=False,
-        xmax_residuals=4,
+        xmax_residuals=cfg.get('max_residuals', 4),
     ),
 )
 plot_color = build_color_components_plotting(
@@ -300,8 +300,7 @@ if cfg.get('prior_samples'):
         plot_source(position)
         plot_prior(position)
         plot_color(position)
-        if not cfg['lens_only']:
-            plot_lens(position, None, parametric=parametric_flag)
+        plot_lens(position, None, parametric=parametric_flag)
 
 
 def plot(samples: jft.Samples, state: jft.OptimizeVIState):
@@ -310,7 +309,7 @@ def plot(samples: jft.Samples, state: jft.OptimizeVIState):
         plot_source(samples, state)
         plot_residual(samples, state)
         plot_color(samples, state)
-        # plot_lens(samples, state, parametric=parametric_flag)
+        plot_lens(samples, state, parametric=parametric_flag)
 
 
 pretrain_position = pretrain_lens_system(cfg, lens_system)
