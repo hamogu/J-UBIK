@@ -27,9 +27,9 @@ grid:
   energy_unit: eV
   energy_bin:
     e_min:
-      - 0.054 # F2100W
+      # - 0.054 # F2100W
       # - 0.068 # F1800W  # mistake here actually 0.064
-      # - 0.075 # F1500W
+      - 0.075 # F1500W
       # - 0.093 # F1280W  # mistake here actually 0.088
       # - 0.114 # F1000W
       # - 0.143 # F770W
@@ -41,9 +41,9 @@ grid:
       # - 0.743 # F150W
       # - 0.967 # F115W
     e_max:
-      - 0.067 # F2100W
+      # - 0.067 # F2100W
       # - 0.075 # F1800W
-      # - 0.092 # F1500W
+      - 0.092 # F1500W
       # - 0.107 # F1280W
       # - 0.137 # F1000W
       # - 0.188 # F770W
@@ -93,26 +93,26 @@ telescope:
           rotation: ['delta', 0, 0]
 
 files:
-  res_dir: './results/jwst_lens/filter_consistency_test/f2100w_single_01'
+  res_dir: './results/jwst_lens/filter_consistency_test/f1500w_single_01'
   # res_dir: './results/jwst_lens/mfreworked/all_data_06_fullmass'
 
   pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
 
   filter:
 
-    f2100w:
-      - './data/spt0418/f2100w/jw01355015001_15101_00001_mirimage/jw01355015001_15101_00001_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00002_mirimage/jw01355015001_15101_00002_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00003_mirimage/jw01355015001_15101_00003_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00004_mirimage/jw01355015001_15101_00004_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00005_mirimage/jw01355015001_15101_00005_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00006_mirimage/jw01355015001_15101_00006_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00007_mirimage/jw01355015001_15101_00007_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00008_mirimage/jw01355015001_15101_00008_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00009_mirimage/jw01355015001_15101_00009_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00010_mirimage/jw01355015001_15101_00010_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00011_mirimage/jw01355015001_15101_00011_mirimage_cal.fits'
-      - './data/spt0418/f2100w/jw01355015001_15101_00012_mirimage/jw01355015001_15101_00012_mirimage_cal.fits'
+    # f2100w:
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00001_mirimage/jw01355015001_15101_00001_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00002_mirimage/jw01355015001_15101_00002_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00003_mirimage/jw01355015001_15101_00003_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00004_mirimage/jw01355015001_15101_00004_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00005_mirimage/jw01355015001_15101_00005_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00006_mirimage/jw01355015001_15101_00006_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00007_mirimage/jw01355015001_15101_00007_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00008_mirimage/jw01355015001_15101_00008_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00009_mirimage/jw01355015001_15101_00009_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00010_mirimage/jw01355015001_15101_00010_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00011_mirimage/jw01355015001_15101_00011_mirimage_cal.fits'
+    #   - './data/spt0418/f2100w/jw01355015001_15101_00012_mirimage/jw01355015001_15101_00012_mirimage_cal.fits'
 
     # f1800w:
     #   - './data/spt0418/f1800w/jw01355015001_13101_00001_mirimage/jw01355015001_13101_00001_mirimage_cal.fits'
@@ -120,11 +120,11 @@ files:
     #   # - './data/spt0418/f1800w/jw01355015001_13101_00003_mirimage/jw01355015001_13101_00003_mirimage_cal.fits'
     #   # - './data/spt0418/f1800w/jw01355015001_13101_00004_mirimage/jw01355015001_13101_00004_mirimage_cal.fits'
 
-    # f1500w:
-    #   - './data/spt0418/f1500w/jw01355015001_11101_00001_mirimage/jw01355015001_11101_00001_mirimage_cal.fits'
-    #   # - './data/spt0418/f1500w/jw01355015001_11101_00002_mirimage/jw01355015001_11101_00002_mirimage_cal.fits'
-    #   # - './data/spt0418/f1500w/jw01355015001_11101_00003_mirimage/jw01355015001_11101_00003_mirimage_cal.fits'
-    #   # - './data/spt0418/f1500w/jw01355015001_11101_00004_mirimage/jw01355015001_11101_00004_mirimage_cal.fits'
+    f1500w:
+      - './data/spt0418/f1500w/jw01355015001_11101_00001_mirimage/jw01355015001_11101_00001_mirimage_cal.fits'
+      - './data/spt0418/f1500w/jw01355015001_11101_00002_mirimage/jw01355015001_11101_00002_mirimage_cal.fits'
+      - './data/spt0418/f1500w/jw01355015001_11101_00003_mirimage/jw01355015001_11101_00003_mirimage_cal.fits'
+      - './data/spt0418/f1500w/jw01355015001_11101_00004_mirimage/jw01355015001_11101_00004_mirimage_cal.fits'
 
     # f1280w:
     #   - './data/spt0418/f1280w/jw01355015001_09101_00001_mirimage/jw01355015001_09101_00001_mirimage_cal.fits'
@@ -182,14 +182,14 @@ lensing:
         mean:
           gaussian_01: # i0*Gauss
             # i0: ['log_normal', 8.0e-4, 9.0e-5]
-            i0: ['delta', 1.0e-1, 1.0e-3]
-            center: ['normal', 0, 0.1]
+            i0: ['log_normal', 1.0e-1, 2.0e-1]
+            center: ['normal', 0, 0.2]
             covariance: ['log_normal', 0.05, 0.007]
             off_diagonal: ['normal', 0.0, 10.0]
           gaussian_02: # i0*Gauss
             # i0: ['log_normal', 8.0e-4, 9.0e-5]
-            i0: ['log_normal', 2.0e-2, 2.0e-2]
-            center: ['normal', [-0.4, 0.4], 0.1]
+            i0: ['log_normal', 2.0e-2, 4.0e-2]
+            center: ['normal', [-0.4, 0.4], 0.2]
             covariance: ['log_normal', 0.05, 0.007]
             off_diagonal: ['normal', 0.0, 10.0]
 
