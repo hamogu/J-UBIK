@@ -389,7 +389,7 @@ lensing:
 
 minimization:
     key: 12092024
-    resume: True
+    resume: False
     n_total_iterations: 25
     pretraining_steps: Null
 
