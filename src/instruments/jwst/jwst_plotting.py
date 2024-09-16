@@ -171,6 +171,8 @@ def build_plot_sky_residuals(
     std_relative = plotting_config.get('std_relative', True)
     fileformat = plotting_config.get('fileformat', 'png')
     xmax_residuals = plotting_config.get('xmax_residuals', np.inf)
+    if xmax_residuals is None:
+        xmax_residuals = np.inf
 
     sky_min = plotting_config.get('sky_min', 5e-4)
 
