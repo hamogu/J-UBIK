@@ -122,6 +122,7 @@ sky_model_with_keys = jft.Model(
     init=sky_model.init
 )
 
+pretrain_position = pretrain_lens_system(cfg, lens_system)
 
 data_dict = {}
 likelihoods = []
@@ -311,9 +312,6 @@ def plot(samples: jft.Samples, state: jft.OptimizeVIState):
         plot_residual(samples, state)
         plot_color(samples, state)
         plot_lens(samples, state, parametric=parametric_flag)
-
-
-pretrain_position = pretrain_lens_system(cfg, lens_system)
 
 
 cfg_mini = ju.get_config(config_path)["minimization"]
