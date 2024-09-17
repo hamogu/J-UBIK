@@ -172,15 +172,6 @@ def pretrain_lens_system(cfg: dict, lens_system: LensSystem):
     lens_mass, lens_light, source_light = get_pretrain_data(
         cfg['files']['pretrain_path'])
 
-    source_light_samples = pretrain_model(
-        res_dir=pretrain_res_dir,
-        model_name='source_light',
-        cfg_mini=cfg["minimization"],
-        data_std=source_light,
-        model=lens_system.source_plane_model.light_model,
-        plotting_config=dict(norm=LogNorm),
-    )
-
     lens_light_samples = pretrain_model(
         res_dir=pretrain_res_dir,
         model_name='lens_light',
@@ -196,6 +187,15 @@ def pretrain_lens_system(cfg: dict, lens_system: LensSystem):
         cfg_mini=cfg["minimization"],
         data_std=lens_mass,
         model=lens_system.lens_plane_model.convergence_model,
+        plotting_config=dict(norm=LogNorm),
+    )
+
+    source_light_samples = pretrain_model(
+        res_dir=pretrain_res_dir,
+        model_name='source_light',
+        cfg_mini=cfg["minimization"],
+        data_std=source_light,
+        model=lens_system.source_plane_model.light_model,
         plotting_config=dict(norm=LogNorm),
     )
 
