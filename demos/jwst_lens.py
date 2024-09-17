@@ -98,8 +98,10 @@ insert_spaces_in_lensing(cfg)
 lens_system = build_lens_system(cfg['lensing'])
 if cfg['nonparametric_lens']:
     sky_model = lens_system.get_forward_model_full()
+    parametric_flag = False
 else:
     sky_model = lens_system.get_forward_model_parametric()
+    parametric_flag = True
 
 energy_cfg = cfg['grid']['energy_bin']
 e_unit = getattr(u, energy_cfg.get('unit', 'eV'))
@@ -212,7 +214,6 @@ likelihood = reduce(lambda x, y: x+y, likelihoods)
 likelihood = connect_likelihood_to_model(likelihood, model)
 
 # PLOTTING
-parametric_flag = lens_system.lens_plane_model.convergence_model.nonparametric() is not None
 ll_alpha, ll_nonpar, sl_alpha, sl_nonpar = get_alpha_nonpar(lens_system)
 
 plot_lens = build_plot_lens_system(
