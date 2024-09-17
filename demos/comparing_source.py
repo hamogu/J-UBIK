@@ -153,26 +153,6 @@ sed_x_labels = [k for k in full_fp.keys_and_colors.keys()]
 sed_x_wavelength = [c.center.wavelength.to(
     u.um).value for c in full_fp.keys_and_colors.values()]
 
-fig, ax = plt.subplots()
-ax.errorbar(sed_x_wavelength, sed_galaxy_1_mean, yerr=sed_galaxy_1_std,
-            label='galaxy 1', color='orange', fmt='o', capsize=3)
-ax.errorbar(sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
-            label='galaxy 2', color='green', fmt='o', capsize=3)
-
-ax.set_xlabel('Wavelength (10^-6 m)')
-ax.set_ylabel('SED')
-ax.legend()
-
-ax_top = plt.twiny()
-ax_top.set_xlim(ax.get_xlim())
-ax_top.set_xticks(sed_x_wavelength)
-ax_top.set_xticklabels(sed_x_labels)
-ax_top.xaxis.set_ticks_position('top')
-ax_top.xaxis.set_label_position('top')
-plt.setp(ax_top.get_xticklabels(), rotation=30,
-         ha="left", rotation_mode="anchor")
-plt.show()
-
 # plotting sed with source
 norm = LogNorm(vmin=1e-3)
 fig, axes = plt.subplots(4, 4)
@@ -193,6 +173,24 @@ ax.errorbar(
 ax.errorbar(
     sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
     label='galaxy 2', color='green', fmt='o', capsize=3)
+ax.set_xlabel('Wavelength (10^-6 m)')
+ax.set_ylabel('SED')
+ax.legend()
+ax_top = plt.twiny()
+ax_top.set_xlim(ax.get_xlim())
+ax_top.set_xticks(sed_x_wavelength)
+ax_top.set_xticklabels(sed_x_labels)
+ax_top.xaxis.set_ticks_position('top')
+ax_top.xaxis.set_label_position('top')
+plt.setp(ax_top.get_xticklabels(), rotation=30,
+         ha="left", rotation_mode="anchor")
+plt.show()
+
+fig, ax = plt.subplots()
+ax.errorbar(sed_x_wavelength, sed_galaxy_1_mean, yerr=sed_galaxy_1_std,
+            label='galaxy 1', color='orange', fmt='o', capsize=3)
+ax.errorbar(sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
+            label='galaxy 2', color='green', fmt='o', capsize=3)
 ax.set_xlabel('Wavelength (10^-6 m)')
 ax.set_ylabel('SED')
 ax.legend()
