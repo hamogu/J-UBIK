@@ -172,38 +172,44 @@ def pretrain_lens_system(cfg: dict, lens_system: LensSystem):
     lens_mass, lens_light, source_light = get_pretrain_data(
         cfg['files']['pretrain_path'])
 
-    lens_light_samples = pretrain_model(
-        res_dir=pretrain_res_dir,
-        model_name='lens_light',
-        cfg_mini=cfg["minimization"],
-        data_std=lens_light,
-        model=lens_system.lens_plane_model.light_model,
-        plotting_config=dict(norm=LogNorm),
-    )
+    try:
+        source_light_samples = pretrain_model(
+            res_dir=pretrain_res_dir,
+            model_name='source_light',
+            cfg_mini=cfg["minimization"],
+            data_std=source_light,
+            model=lens_system.source_plane_model.light_model,
+            plotting_config=dict(norm=LogNorm),
+        )
+        source_light_mean = jft.mean(source_light_samples)
+    except ValueError:
+        source_light_samples = {}
 
-    lens_mass_samples = pretrain_model(
-        res_dir=pretrain_res_dir,
-        model_name='lens_mass',
-        cfg_mini=cfg["minimization"],
-        data_std=lens_mass,
-        model=lens_system.lens_plane_model.convergence_model,
-        plotting_config=dict(norm=LogNorm),
-    )
+    try:
+        lens_light_samples = pretrain_model(
+            res_dir=pretrain_res_dir,
+            model_name='lens_light',
+            cfg_mini=cfg["minimization"],
+            data_std=lens_light,
+            model=lens_system.lens_plane_model.light_model,
+            plotting_config=dict(norm=LogNorm),
+        )
+        lens_light_mean = jft.mean(lens_light_samples)
+    except ValueError:
+        lens_light_samples = {}
 
-    source_light_samples = pretrain_model(
-        res_dir=pretrain_res_dir,
-        model_name='source_light',
-        cfg_mini=cfg["minimization"],
-        data_std=source_light,
-        model=lens_system.source_plane_model.light_model,
-        plotting_config=dict(norm=LogNorm),
-    )
-
-    source_light_mean, lens_light_mean, lens_mass_mean = (
-        jft.mean(source_light_samples),
-        jft.mean(lens_light_samples),
-        jft.mean(lens_mass_samples)
-    )
+    try:
+        lens_mass_samples = pretrain_model(
+            res_dir=pretrain_res_dir,
+            model_name='lens_mass',
+            cfg_mini=cfg["minimization"],
+            data_std=lens_mass,
+            model=lens_system.lens_plane_model.convergence_model,
+            plotting_config=dict(norm=LogNorm),
+        )
+        lens_mass_mean = jft.mean(lens_mass_samples)
+    except ValueError:
+        lens_mass_samples = {}
 
     while isinstance(source_light_mean, jft.Vector):
         source_light_mean = source_light_mean.tree
