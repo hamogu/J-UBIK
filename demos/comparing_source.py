@@ -1,9 +1,11 @@
+import os
 import yaml
 
 import pickle
 
 import nifty8.re as jft
 from jax import random
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -147,15 +149,18 @@ galaxy_1, galaxy_2 = [jft.mean([p(fls) for fls in full_latent_samples]) for
 
 cval = 0.4
 contour_1, contour_2 = [get_contour(g, cval) for g in [galaxy_1, galaxy_2]]
+contour_all = np.ones_like(contour_1)
 sed_galaxy_1_mean, sed_galaxy_1_std = get_sed(full_samples, contour_1)
 sed_galaxy_2_mean, sed_galaxy_2_std = get_sed(full_samples, contour_2)
+sed_all_mean, sed_all_std = get_sed(full_samples, contour_all)
 sed_x_labels = [k for k in full_fp.keys_and_colors.keys()]
 sed_x_wavelength = [c.center.wavelength.to(
     u.um).value for c in full_fp.keys_and_colors.values()]
 
 # plotting sed with source
+out_path = '/'.join(full_path.split('/')[:-1] + ['posterior_analysis'])
 norm = LogNorm(vmin=1e-3)
-fig, axes = plt.subplots(4, 4)
+fig, axes = plt.subplots(4, 4, figsize=(12, 10), dpi=300)
 for ii, (ax, fname) in enumerate(zip(axes.flatten(), full_fp.keys_and_colors.keys())):
     im = ax.imshow(full_smean[ii], origin='lower', extent=source_grid.extent(),
                    norm=norm, cmap='viridis')
@@ -165,32 +170,13 @@ for ii, (ax, fname) in enumerate(zip(axes.flatten(), full_fp.keys_and_colors.key
                alpha=0.7, extent=source_grid.extent())
     ax.contour(contour_2, colors='green', linewidth=0.5,
                alpha=0.7, extent=source_grid.extent())
-
 ax = axes[-1, -1]
-ax.errorbar(
-    sed_x_wavelength, sed_galaxy_1_mean, yerr=sed_galaxy_1_std,
-    label='galaxy 1', color='orange', fmt='o', capsize=3)
-ax.errorbar(
-    sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
-    label='galaxy 2', color='green', fmt='o', capsize=3)
-ax.set_xlabel('Wavelength (10^-6 m)')
-ax.set_ylabel('SED')
-ax.legend()
-ax_top = plt.twiny()
-ax_top.set_xlim(ax.get_xlim())
-ax_top.set_xticks(sed_x_wavelength)
-ax_top.set_xticklabels(sed_x_labels)
-ax_top.xaxis.set_ticks_position('top')
-ax_top.xaxis.set_label_position('top')
-plt.setp(ax_top.get_xticklabels(), rotation=30,
-         ha="left", rotation_mode="anchor")
-plt.show()
-
-fig, ax = plt.subplots()
 ax.errorbar(sed_x_wavelength, sed_galaxy_1_mean, yerr=sed_galaxy_1_std,
             label='galaxy 1', color='orange', fmt='o', capsize=3)
 ax.errorbar(sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
             label='galaxy 2', color='green', fmt='o', capsize=3)
+ax.errorbar(sed_x_wavelength, sed_all_mean, yerr=sed_all_std,
+            label='all', color='black', fmt='o', capsize=3)
 ax.set_xlabel('Wavelength (10^-6 m)')
 ax.set_ylabel('SED')
 ax.legend()
@@ -202,7 +188,32 @@ ax_top.xaxis.set_ticks_position('top')
 ax_top.xaxis.set_label_position('top')
 plt.setp(ax_top.get_xticklabels(), rotation=30,
          ha="left", rotation_mode="anchor")
-plt.show()
+plt.tight_layout()
+plt.savefig(os.path.join(out_path, 'post_galaxy_sed_wspace.png'))
+plt.close()
+
+fig, ax = plt.subplots(figsize=(9, 6), dpi=300)
+ax.errorbar(sed_x_wavelength, sed_galaxy_1_mean, yerr=sed_galaxy_1_std,
+            label='galaxy 1', color='orange', fmt='o', capsize=3)
+ax.errorbar(sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
+            label='galaxy 2', color='green', fmt='o', capsize=3)
+ax.errorbar(sed_x_wavelength, sed_all_mean, yerr=sed_all_std,
+            label='all', color='black', fmt='o', capsize=3)
+ax.set_xlabel('Wavelength (10^-6 m)')
+ax.set_ylabel('SED')
+ax.legend()
+ax_top = plt.twiny()
+ax_top.set_xlim(ax.get_xlim())
+ax_top.set_xticks(sed_x_wavelength)
+ax_top.set_xticklabels(sed_x_labels)
+ax_top.xaxis.set_ticks_position('top')
+ax_top.xaxis.set_label_position('top')
+plt.setp(ax_top.get_xticklabels(), rotation=30,
+         ha="left", rotation_mode="anchor")
+plt.tight_layout()
+plt.savefig(os.path.join(out_path, 'post_galaxy_sed.png'))
+plt.close()
+
 
 # Plotting samples
 # norm = LogNorm(vmin=1e-4)
@@ -214,7 +225,7 @@ exit()
 key = random.PRNGKey(42)
 n_samples = 5
 fm_priors = np.array([full_m(full_m.init(key+ii))
-                     for ii in range(n_samples)])
+                      for ii in range(n_samples)])
 
 norm = LogNorm(vmin=1e-4)
 plot_nd_array(fm_priors, norm)
