@@ -91,6 +91,9 @@ if cfg['cpu']:
     from jax import config, devices
     config.update('jax_default_device', devices('cpu')[0])
 
+if cfg['no_interactive_plotting']:
+    import matplotlib
+    matplotlib.use('Agg')
 
 reconstruction_grid = build_reconstruction_grid_from_config(cfg)
 # insert_ubik_energy_in_lensing(cfg, zsource=4.2)

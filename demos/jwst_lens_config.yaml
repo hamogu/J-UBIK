@@ -3,6 +3,7 @@ prior_samples: False
 plot_results: True
 nonparametric_lens: True
 max_residuals: Null # 4 for big run
+no_interactive_plotting: True
 
 grid:
   sdim: 384
