@@ -113,8 +113,10 @@ def get_contour(g, cval):
 
 def get_sed(rsamples, contour):
     galaxy_vals = rsamples[..., contour]
-    gal_mean = galaxy_vals.mean(axis=0).mean(axis=-1)
-    gal_std = galaxy_vals.std(axis=0).mean(axis=-1)
+    gal_mean = galaxy_vals.mean(axis=0).sum(
+        axis=-1)  # * ( 1e-11*u.MJy).to(u.uJy).value  FIXME; This needs to be adjusted in the pipeline
+    gal_std = galaxy_vals.std(axis=0).sum(
+        axis=-1)  # * ( 1e-11*u.MJy).to(u.uJy).value
     return gal_mean, gal_std
 
 
@@ -175,10 +177,10 @@ ax.errorbar(sed_x_wavelength, sed_galaxy_1_mean, yerr=sed_galaxy_1_std,
             label='galaxy 1', color='orange', fmt='o', capsize=3)
 ax.errorbar(sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
             label='galaxy 2', color='green', fmt='o', capsize=3)
-ax.errorbar(sed_x_wavelength, sed_all_mean, yerr=sed_all_std,
-            label='all', color='black', fmt='o', capsize=3)
+# ax.errorbar(sed_x_wavelength, sed_all_mean, yerr=sed_all_std,
+#             label='all', color='black', fmt='o', capsize=3)
 ax.set_xlabel('Wavelength (10^-6 m)')
-ax.set_ylabel('SED')
+ax.set_ylabel('SED (uJy)')
 ax.legend()
 ax_top = plt.twiny()
 ax_top.set_xlim(ax.get_xlim())
@@ -197,10 +199,10 @@ ax.errorbar(sed_x_wavelength, sed_galaxy_1_mean, yerr=sed_galaxy_1_std,
             label='galaxy 1', color='orange', fmt='o', capsize=3)
 ax.errorbar(sed_x_wavelength, sed_galaxy_2_mean, yerr=sed_galaxy_2_std,
             label='galaxy 2', color='green', fmt='o', capsize=3)
-ax.errorbar(sed_x_wavelength, sed_all_mean, yerr=sed_all_std,
-            label='all', color='black', fmt='o', capsize=3)
+# ax.errorbar(sed_x_wavelength, sed_all_mean, yerr=sed_all_std,
+#             label='all', color='black', fmt='o', capsize=3)
 ax.set_xlabel('Wavelength (10^-6 m)')
-ax.set_ylabel('SED')
+ax.set_ylabel('SED (uJy)')
 ax.legend()
 ax_top = plt.twiny()
 ax_top.set_xlim(ax.get_xlim())
