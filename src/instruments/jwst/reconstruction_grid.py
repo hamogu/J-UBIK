@@ -106,14 +106,6 @@ class Grid:
         return self.wcs.wl_from_index([
             (xmin, ymin), (xmin, ymax), (xmax, ymin), (xmax, ymax)])
 
-    def extent(self, unit=units.arcsec):
-        """Convenience method which gives the extent of the grid in
-        physical units."""
-        distances = [d.to(unit).value for d in self.distances]
-        shape = self.shape
-        halfside = np.array(shape)/2 * np.array(distances)
-        return -halfside[0], halfside[0], -halfside[1], halfside[1]
-
     def index_grid(
         self,
         extend_factor=1,
@@ -201,3 +193,14 @@ class Grid:
         x = r.to(unit) * np.sin(phi.to(units.rad).value)
         y = -r.to(unit) * np.cos(phi.to(units.rad).value)
         return np.array((x.value, y.value))
+
+    def distances_in_units_of(self, unit: Unit) -> list[float]:
+        return [d.to(unit).value for d in self.distances]
+
+    def extent(self, unit=units.arcsec):
+        """Convenience method which gives the extent of the grid in
+        physical units."""
+        distances = [d.to(unit).value for d in self.distances]
+        shape = self.shape
+        halfside = np.array(shape)/2 * np.array(distances)
+        return -halfside[0], halfside[0], -halfside[1], halfside[1]
