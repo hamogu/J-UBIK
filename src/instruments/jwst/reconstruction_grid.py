@@ -156,59 +156,6 @@ class Grid:
             x, y = np.roll(x, -extent[0]), np.roll(y, -extent[1])
         return np.meshgrid(x, y, indexing='xy')
 
-    def wl_coords(self, extend_factor=1, to_bottom_left=True) -> SkyCoord:
-        """
-        Get the world coordinates of the grid points.
-
-        Parameters
-        ----------
-        extend_factor : float, optional
-            A factor by which to extend the grid. Default is 1.
-        to_bottom_left : bool, optional
-            Whether to align the extended grid indices with the unextended grid.
-            Default is True.
-
-        Returns
-        -------
-        SkyCoord
-            The world coordinates of each grid point.
-        """
-        indices = self.index_grid(extend_factor, to_bottom_left=to_bottom_left)
-        return self.wcs.wl_from_index([indices])[0]
-
-    def rel_coords(
-        self,
-        extend_factor=1,
-        unit=units.arcsec,
-        to_bottom_left=True
-    ) -> ArrayLike:
-        """
-        Get the relative coordinates of the grid points in a specified unit.
-
-        Parameters
-        ----------
-        extend_factor : float, optional
-            A factor by which to extend the grid. Default is 1.
-        unit : Unit, optional
-            The physical unit for the output coordinates. Default is arcseconds.
-        to_bottom_left : bool, optional
-            Whether to align the extended grid indices with the unextended grid.
-            Default is True.
-
-        Returns
-        -------
-        ArrayLike
-            A 2D array of relative coordinates (x, y) for each grid point in the
-            specified unit.
-        """
-        wl_coords = self.wl_coords(
-            extend_factor, to_bottom_left=to_bottom_left)
-        r = wl_coords.separation(self.center)
-        phi = wl_coords.position_angle(self.center)
-        x = r.to(unit) * np.sin(phi.to(units.rad).value)
-        y = -r.to(unit) * np.cos(phi.to(units.rad).value)
-        return np.array((x.value, y.value))
-
     def distances_in_units_of(self, unit: Unit) -> list[float]:
         return [d.to(unit).value for d in self.distances]
 
