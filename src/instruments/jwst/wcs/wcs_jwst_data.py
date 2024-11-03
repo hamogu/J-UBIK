@@ -16,9 +16,10 @@ from .wcs_base import WcsBase
 
 class WcsJwstData(WcsBase):
     """
-    A class for converting between world coordinates and pixel coordinates
-    in JWST data.
+    A wrapper around the gwcs, in order to define a common interface
+    with the astropy wcs.
     """
+
     def __init__(self, wcs):
         try:
             from gwcs import WCS

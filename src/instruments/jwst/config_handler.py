@@ -44,6 +44,11 @@ def _get_rotation(config: dict) -> units.Quantity:
     return rotation*unit
 
 
+def _get_coordinate_system(config: dict) -> str:
+    """Get the coordinate system from the config."""
+    return config['grid']['pointing']['frame']
+
+
 def build_reconstruction_grid_from_config(config: dict) -> Grid:
     """
     Builds the reconstruction grid from the given configuration.
@@ -72,9 +77,13 @@ def build_reconstruction_grid_from_config(config: dict) -> Grid:
     fov = _get_fov(config)
     shape = _get_shape(config)
     rotation = _get_rotation(config)
-    return Grid(wl, shape,
+    coordinate_system = _get_coordinate_system(config)
+    return Grid(wl,
+                shape,
                 (fov.to(units.deg), fov.to(units.deg)),
-                rotation=rotation)
+                rotation=rotation,
+                coordinate_system=coordinate_system,
+                )
 
 
 def build_filter_zero_flux(

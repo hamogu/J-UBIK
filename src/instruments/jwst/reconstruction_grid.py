@@ -20,11 +20,24 @@ class Grid:
     """
     Grid that wraps a 2D array with a world coordinate system (WCS).
 
-    This class represents a grid in the sky with a world coordinate system (WCS)
-    centered around a given sky location.
+    This class represents a grid in the sky with a world coordinate system
+    (WCS) and centered around a given sky location.
     It provides methods to calculate physical properties of the grid,
     such as distances between pixels, and allows easy access to the world and
     relative coordinates of the grid points.
+
+    Parameters
+    ----------
+    center : SkyCoord
+        The central sky coordinate of the grid.
+    shape : tuple of int
+        The shape of the grid, specified as (rows, columns).
+    fov : tuple of Unit
+        The field of view of the grid in angular units for both axes
+        (width, height).
+    rotation : Unit, optional
+        The rotation of the grid in degrees, counterclockwise from north.
+        Default is 0 degrees.
     """
 
     def __init__(
@@ -33,6 +46,7 @@ class Grid:
         shape: Tuple[int, int],
         fov: Tuple[Unit, Unit],
         rotation: Unit = 0.0 * units.deg,
+        coordinate_system: Optional[str] = 'icrs',
     ):
         """
         Initialize the Grid with a center, shape, field of view,
@@ -59,7 +73,8 @@ class Grid:
             center=center,
             shape=shape,
             fov=(fov[0].to(units.deg), fov[1].to(units.deg)),
-            rotation=rotation
+            rotation=rotation,
+            coord_system=coordinate_system,
         )
 
     @property
