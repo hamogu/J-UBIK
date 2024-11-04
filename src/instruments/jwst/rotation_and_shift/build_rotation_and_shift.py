@@ -30,6 +30,7 @@ class RotationAndShiftModel(jft.Model):
     model and then using a callable function to transform the corrected
     coordinates.
     """
+
     def __init__(
         self,
         sky_domain: dict,
@@ -131,7 +132,7 @@ def build_rotation_and_shift_model(
     RotationAndShiftModel(dict(sky, correction)) -> rotated_and_shifted_sky
     """
 
-    assert reconstruction_grid.dvol.unit == data_grid_dvol.unit
+    assert reconstruction_grid.spatial_dvol.unit == data_grid_dvol.unit
 
     correction_model = build_coordinates_correction_model_from_grid(
         coordinate_correction['domain_key'] if coordinate_correction is not None else None,
@@ -141,14 +142,14 @@ def build_rotation_and_shift_model(
         subsample_grid_centers_in_index_grid_non_vstack(
             world_extrema,
             data_grid_wcs,
-            reconstruction_grid.wcs,
+            reconstruction_grid.spatial_wcs,
             subsample)
     )
 
     match model_type:
         case 'linear':
             call = build_linear_rotation_and_shift(
-                sky_dvol=reconstruction_grid.dvol.value,
+                sky_dvol=reconstruction_grid.spatial_dvol.value,
                 sub_dvol=data_grid_dvol.value / subsample**2,
                 **kwargs.get('linear', dict(order=1, sky_as_brightness=False)),
             )
@@ -159,7 +160,7 @@ def build_rotation_and_shift_model(
                 correction_model, CoordinatesCorrection) else correction_model(None).shape[1:]
 
             call = build_nufft_rotation_and_shift(
-                sky_dvol=reconstruction_grid.dvol.value,
+                sky_dvol=reconstruction_grid.spatial_dvol.value,
                 sub_dvol=data_grid_dvol.value / subsample**2,
                 sky_shape=next(iter(sky_domain.values())).shape,
                 out_shape=out_shape,
@@ -172,11 +173,12 @@ def build_rotation_and_shift_model(
             sparse_kwargs = kwargs.get('sparse', dict(
                 extend_factor=1, to_bottom_left=False))
             call = build_sparse_rotation_and_shift(
-                index_grid=reconstruction_grid.index_grid(**sparse_kwargs),
+                index_grid=reconstruction_grid.spatial_index_grid(
+                    **sparse_kwargs),
                 subsample_corners=subsample_grid_corners_in_index_grid_non_vstack(
                     world_extrema,
                     data_grid_wcs,
-                    reconstruction_grid.wcs,
+                    reconstruction_grid.spatial_wcs,
                     subsample),
             )
 

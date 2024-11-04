@@ -13,6 +13,7 @@ from astropy.coordinates import SkyCoord
 
 from .reconstruction_grid import Grid
 from .jwst_data import JwstData
+from .color import Color, ColorRange, BinnedColorRanges
 
 
 def _get_world_location(config: dict) -> SkyCoord:
@@ -49,6 +50,20 @@ def _get_coordinate_system(config: dict) -> str:
     return config['grid']['pointing']['frame']
 
 
+def _get_binned_colors(config: dict) -> BinnedColorRanges:
+    energy_unit = config['grid']['energy_unit']
+    energy_bin = config['grid']['energy_bin']
+    emins, emaxs = energy_bin['e_min'], energy_bin['e_max']
+
+    color_ranges = []
+    eunit = getattr(units, energy_unit)
+    for emin, emax in zip(emins, emaxs):
+        emin, emax = emin*eunit, emax*eunit
+        color_ranges.append(ColorRange(Color(emin), Color(emax)))
+
+    return BinnedColorRanges(color_ranges)
+
+
 def build_reconstruction_grid_from_config(config: dict) -> Grid:
     """
     Builds the reconstruction grid from the given configuration.
@@ -78,12 +93,15 @@ def build_reconstruction_grid_from_config(config: dict) -> Grid:
     shape = _get_shape(config)
     rotation = _get_rotation(config)
     coordinate_system = _get_coordinate_system(config)
-    return Grid(wl,
-                shape,
-                (fov.to(units.deg), fov.to(units.deg)),
-                rotation=rotation,
-                coordinate_system=coordinate_system,
-                )
+    binned_colors = _get_binned_colors(config)
+    return Grid(
+        spatial_center=wl,
+        spatial_shape=shape,
+        spatial_fov=(fov.to(units.deg), fov.to(units.deg)),
+        spectral_colors=binned_colors,
+        spatial_rotation=rotation,
+        spatial_coordinate_system=coordinate_system,
+    )
 
 
 def build_filter_zero_flux(
@@ -211,12 +229,12 @@ def get_psf_extension_from_config(
     if psf_pixels is not None:
         psf_ext = int(config['telescope']['psf']['psf_pixels'] // 2)
         psf_ext = [int(np.sqrt(jwst_data.dvol) * psf_ext / dist)
-                   for dist in reconstruction_grid.distances]
+                   for dist in reconstruction_grid.spatial_distances]
 
     psf_arcsec = config['telescope']['psf'].get('psf_arcsec')
     if psf_arcsec is not None:
         psf_ext = [int((psf_arcsec*units.arcsec).to(units.deg) / 2 / dist)
-                   for dist in reconstruction_grid.distances]
+                   for dist in reconstruction_grid.spatial_distances]
 
     if psf_arcsec is None and psf_pixels is None:
         raise ValueError(

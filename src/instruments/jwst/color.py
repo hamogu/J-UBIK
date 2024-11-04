@@ -183,8 +183,22 @@ class BinnedColorRanges():
         '''Returns the centers/mean of each color range.'''
         return [cr.center for cr in self.color_ranges]
 
+    @property
+    def shape(self):
+        return (len(self.color_ranges),)
+
+    def get_color_range_from_color(self, color: Color):
+        '''Returns all color ranges which contain the color. Note: These could
+        be more then one if the color ranges are not disjoint.'''
+        assert isinstance(color, Color), f'{color} must be a Color'
+        assert color in self, f'{color} is not in {self}'
+        return [ii for ii, cr in enumerate(self.color_ranges) if color in cr]
+
     def __repr__(self):
-        return f'{self.binbounds}'
+        crs = ''
+        for ii, cr in enumerate(self.color_ranges):
+            crs += f'\n{ii}: {cr.__repr__()}'
+        return f'{crs}'
 
     def __contains__(self, item: Color):
         return any([item in cr for cr in self.color_ranges])
@@ -192,9 +206,6 @@ class BinnedColorRanges():
     def __len__(self):
         return len(self.color_ranges)
 
-    def __getitem__(self, color: Color):
-        '''Returns all color ranges which contain the color. Note: These could
-        be more then one if the color ranges are not disjoint.'''
-        assert isinstance(color, Color), f'{color} must be a Color'
-        assert color in self, f'{color} is not in {self}'
-        return [ii for ii, cr in enumerate(self.color_ranges) if color in cr]
+    def __getitem__(self, index: int):
+        '''Get color range from bin index.'''
+        return self.color_ranges[index]

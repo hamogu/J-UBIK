@@ -36,7 +36,7 @@ from jubik0.instruments.jwst.jwst_plotting import (
 from jubik0.instruments.jwst.filter_projector import FilterProjector
 from jubik0.instruments.jwst.pretrain_model import pretrain_lens_system
 
-from jubik0.instruments.jwst.color import Color, ColorRange
+from jubik0.instruments.jwst.color import Color, ColorRange, BinnedColorRanges
 
 from charm_lensing.lens_system import build_lens_system
 
@@ -87,6 +87,7 @@ ju.save_local_packages_hashes_to_txt(
     os.path.join(RES_DIR, 'hashes.txt'))
 ju.save_config_copy_easy(config_path, os.path.join(RES_DIR, 'config.yaml'))
 
+
 if cfg['cpu']:
     from jax import config, devices
     config.update('jax_default_device', devices('cpu')[0])
@@ -96,6 +97,7 @@ if cfg['no_interactive_plotting']:
     matplotlib.use('Agg')
 
 reconstruction_grid = build_reconstruction_grid_from_config(cfg)
+
 # insert_ubik_energy_in_lensing(cfg, zsource=4.2)
 insert_spaces_in_lensing(cfg)
 lens_system = build_lens_system(cfg['lensing'])
@@ -144,17 +146,17 @@ for fltname, flt in cfg['files']['filter'].items():
 
         mask = get_mask_from_index_centers(
             np.squeeze(subsample_grid_centers_in_index_grid(
-                reconstruction_grid.world_extrema(ext=psf_ext),
+                reconstruction_grid.spatial_world_extrema(ext=psf_ext),
                 jwst_data.wcs,
-                reconstruction_grid.wcs,
+                reconstruction_grid.spatial_wcs,
                 1)),
-            reconstruction_grid.shape)
+            reconstruction_grid.spatial_shape)
         mask *= jwst_data.nan_inside_extrema(
-            reconstruction_grid.world_extrema(ext=psf_ext))
+            reconstruction_grid.spatial_world_extrema(ext=psf_ext))
         data = jwst_data.data_inside_extrema(
-            reconstruction_grid.world_extrema(ext=psf_ext))
+            reconstruction_grid.spatial_world_extrema(ext=psf_ext))
         std = jwst_data.std_inside_extrema(
-            reconstruction_grid.world_extrema(ext=psf_ext))
+            reconstruction_grid.spatial_world_extrema(ext=psf_ext))
 
         jwst_response = build_jwst_response(
             {ekey: sky_model_with_keys.target[ekey]},
@@ -166,7 +168,8 @@ for fltname, flt in cfg['files']['filter'].items():
                 data_wcs=jwst_data.wcs,
                 data_model_type=cfg['telescope']['rotation_and_shift']['model'],
                 kwargs_linear=cfg['telescope']['rotation_and_shift']['kwargs_linear'],
-                world_extrema=reconstruction_grid.world_extrema(ext=psf_ext),
+                world_extrema=reconstruction_grid.spatial_world_extrema(
+                    ext=psf_ext),
                 shift_and_rotation_correction=dict(
                     domain_key=data_key + '_correction',
                     priors=build_coordinates_correction_prior_from_config(
@@ -178,7 +181,7 @@ for fltname, flt in cfg['files']['filter'].items():
                 camera=jwst_data.camera,
                 filter=jwst_data.filter,
                 center_pixel=jwst_data.wcs.index_from_wl(
-                    reconstruction_grid.center)[0],
+                    reconstruction_grid.spatial_center)[0],
                 webbpsf_path=cfg['telescope']['psf']['webbpsf_path'],
                 psf_library_path=cfg['telescope']['psf']['psf_library'],
                 psf_pixels=cfg['telescope']['psf'].get('psf_pixels'),

@@ -11,25 +11,25 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, FuncNorm
 from astropy import units as u
 
-from jubik0.jwst.jwst_data import JwstData
-from jubik0.jwst.masking import get_mask_from_index_centers
-from jubik0.jwst.config_handler import (
+from jubik0.instruments.jwst.jwst_data import JwstData
+from jubik0.instruments.jwst.masking import get_mask_from_index_centers
+from jubik0.instruments.jwst.config_handler import (
     build_reconstruction_grid_from_config,
     build_coordinates_correction_prior_from_config,
     build_filter_zero_flux,
     insert_spaces_in_lensing)
-from jubik0.jwst.wcs import (subsample_grid_centers_in_index_grid)
-from jubik0.jwst.jwst_data_model import build_data_model
-from jubik0.jwst.jwst_plotting import (
+from jubik0.instruments.jwst.wcs import (subsample_grid_centers_in_index_grid)
+# from jubik0.instruments.jwst.jwst_data_model import build_data_model
+from jubik0.instruments.jwst.jwst_plotting import (
     build_plot_sky_residuals,
     build_plot_lens_system,
     build_plot_source,
     get_alpha_nonpar,
     rgb_plotting,
 )
-from jubik0.jwst.filter_projector import FilterProjector
+from jubik0.instruments.jwst.filter_projector import FilterProjector
 
-from jubik0.jwst.color import Color, ColorRange
+from jubik0.instruments.jwst.color import Color, ColorRange
 
 from charm_lensing.lens_system import build_lens_system
 
@@ -86,8 +86,6 @@ reconstruction_grid = build_reconstruction_grid_from_config(cfg)
 insert_spaces_in_lensing(cfg)
 lens_system = build_lens_system(cfg['lensing'])
 sky_model = lens_system.get_forward_model_parametric()
-if cfg['lens_only']:
-    sky_model = lens_system.lens_plane_model.light_model
 
 
 energy_cfg = cfg['grid']['energy_bin']
@@ -175,12 +173,59 @@ if PLOT_ALL_RECONSTRUCTION:
                 print('Plotting source deviations', ii)
                 plot_deviations(samples, opt_vi_st)
 
-else:
+elif False:
     samp_stat = os.path.join(RES_DIR, 'last.pkl')
     with open(samp_stat, "rb") as f:
         samples, opt_vi_st = pickle.load(f)
     plot_source(samples, opt_vi_st)
     plot_deviations(samples, opt_vi_st)
+
+else:
+    samp_stat = os.path.join(RES_DIR, 'last.pkl')
+    with open(samp_stat, "rb") as f:
+        samples, opt_vi_st = pickle.load(f)
+
+    from charm_lensing.plotting import (
+        configure_matplotlib, display_colorbar, configer_panel, display_text)
+    COLUMN_WIDTH, TEXT_WIDTH, FONT_PROPERTIES = configure_matplotlib(
+        widths='aanda')
+
+    source_light_model = lens_system.source_plane_model.light_model
+
+    source_light = jft.mean([source_light_model(x) for x in samples])
+
+    xlen = 5
+    ylen = 3
+    min_source = 1.0e-3
+
+    fig, axes = plt.subplots(ylen, xlen, figsize=(2*xlen, 1.8*ylen), dpi=300)
+    ims = np.zeros_like(axes)
+    axes = axes.flatten()
+    ims = ims.flatten()
+    for ii, (fltname, fld) in enumerate(filter_projector(source_light).items()):
+        # axes[ii].set_title(f'{fltname}')
+        ims[ii] = axes[ii].imshow(
+            fld,
+            origin='lower',
+            norm=LogNorm(vmin=min_source, vmax=source_light.max()),
+            cmap='jet',
+        )
+        configer_panel(axes[ii], ims[ii], cbar_setting=dict(display=False))
+        display_text(axes[ii], f'{fltname}')
+
+    for ax in [axes[-2], axes[-1]]:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        ax.set_aspect('equal')
+
+    bar = plt.colorbar(ims[ii], cax=axes[-2])
+    bar.set_label('MJy/sr')
+
+    fig.tight_layout()
+    fig.savefig('tmp.pdf')
+    plt.close()
 
 
 exit()

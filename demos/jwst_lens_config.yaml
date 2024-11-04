@@ -15,10 +15,10 @@ grid:
     dec: -47.86462563973049
     unit: deg
     frame: icrs
-    # rotation: 0
+    rotation: 0
     # rotation: -25
     # rotation: 65
-    rotation: -115
+    # rotation: -115
 
   source_grid:
     sdim: 384
@@ -100,7 +100,7 @@ telescope:
 
 files:
   # res_dir: './results/jwst_lens/filter_consistency_test/f1500w_single_01'
-  res_dir: './results/jwst_lens/filter_consistency_test/f356w_single_01'
+  res_dir: './results/jwst_lens/filter_consistency_test/f356w_single_03_test'
 
   pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
 
@@ -195,7 +195,9 @@ lensing:
           gaussian_02: # i0*Gauss
             # i0: ['log_normal', 8.0e-4, 9.0e-5]
             i0: ['log_normal', 2.0e-2, 4.0e-2]
-            center: ['normal', [-0.4, 0.4], 0.2]
+            # center: ['normal', [-0.4, 0.4], 1.2]
+            # center: ['normal', [0.566, 0.00988], 0.2]
+            center: ['normal', [-0.00988, -0.566], 0.2]
             covariance: ['log_normal', 0.05, 0.007]
             off_diagonal: ['normal', 0.0, 10.0]
 
@@ -371,7 +373,7 @@ lensing:
 
 
 minimization:
-    key: 18092024
+    key: 28102024
     resume: False
     n_total_iterations: 20
     pretraining_steps: Null

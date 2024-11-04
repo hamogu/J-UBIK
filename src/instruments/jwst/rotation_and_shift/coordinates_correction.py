@@ -32,6 +32,7 @@ class CoordinatesCorrection(jft.Model):
            = Rot(theta) * (si * pi - si * r),
     where `si * r` is the rotation center.
     """
+
     def __init__(
         self,
         shift_prior: jft.Model,
@@ -232,12 +233,12 @@ def build_coordinates_correction_model_from_grid(
             "supported. Supported types [WcsAstropy, WcsJwstData]."
         )
 
-    rpix = reconstruction_grid.wcs.index_from_wl(rpix)[0]
+    rpix = reconstruction_grid.spatial_wcs.index_from_wl(rpix)[0]
 
     return build_coordinates_correction_model(
         domain_key=domain_key,
         priors=priors,
-        pix_distance=[
-            rd.to(u.arcsec).value for rd in reconstruction_grid.distances],
+        pix_distance=[rd.to(u.arcsec).value for rd in
+                      reconstruction_grid.spatial_distances],
         rotation_center=rpix,
         coords=coords)

@@ -14,6 +14,7 @@ from astropy.units import Unit
 from numpy.typing import ArrayLike
 
 from .wcs.wcs_astropy import build_astropy_wcs
+from .color import BinnedColorRanges
 
 
 class Grid:
@@ -23,72 +24,75 @@ class Grid:
     This class represents a grid in the sky with a world coordinate system
     (WCS) and centered around a given sky location.
     It provides methods to calculate physical properties of the grid,
-    such as distances between pixels, and allows easy access to the world and
+    such as spatial_distances between pixels, and allows easy access to the world and
     relative coordinates of the grid points.
-
-    Parameters
-    ----------
-    center : SkyCoord
-        The central sky coordinate of the grid.
-    shape : tuple of int
-        The shape of the grid, specified as (rows, columns).
-    fov : tuple of Unit
-        The field of view of the grid in angular units for both axes
-        (width, height).
-    rotation : Unit, optional
-        The rotation of the grid in degrees, counterclockwise from north.
-        Default is 0 degrees.
     """
 
     def __init__(
         self,
-        center: SkyCoord,
-        shape: Tuple[int, int],
-        fov: Tuple[Unit, Unit],
-        rotation: Unit = 0.0 * units.deg,
-        coordinate_system: Optional[str] = 'icrs',
+        spatial_center: SkyCoord,
+        spatial_shape: Tuple[int, int],
+        spatial_fov: Tuple[Unit, Unit],
+        spectral_colors: BinnedColorRanges,
+        spatial_rotation: Unit = 0.0 * units.deg,
+        spatial_coordinate_system: Optional[str] = 'icrs',
     ):
         """
-        Initialize the Grid with a center, shape, field of view,
-        and optional rotation.
+        Initialize the Grid with a spatial_center, spatial_shape, spatial 
+        field of view, spectral_colors, and optional spatial_rotation.
 
         Parameters
         ----------
-        center : SkyCoord
+        spatial_center : SkyCoord
             The central sky coordinate of the grid.
-        shape : tuple of int
-            The shape of the grid, specified as (rows, columns).
-        fov : tuple of Unit
+        spatial_shape : tuple of int
+            The spatial_shape of the grid, specified as (rows, columns).
+        spatial_fov : tuple of Unit
             The field of view of the grid in angular units for both axes
             (width, height).
-        rotation : Unit, optional
-            The rotation of the grid in degrees, counterclockwise from north.
-            Default is 0 degrees.
+        spectral_colors: BinnedColorRanges
+            The spectral_colors of the energy dimension.
+        spatial_rotation : Unit, optional
+            The spatial_rotation of the grid in degrees, counterclockwise from
+            north. Default is 0 degrees.
+        spatial_coordinate_system: Optional[str] = 'icrs',
+            The coordinate system of the spatial domain.
         """
-        self.shape = shape
-        self.fov = fov
-        self.distances = [f.to(units.deg)/s for f, s in zip(fov, shape)]
-        self.center = center
-        self.wcs = build_astropy_wcs(
-            center=center,
-            shape=shape,
-            fov=(fov[0].to(units.deg), fov[1].to(units.deg)),
-            rotation=rotation,
-            coord_system=coordinate_system,
+
+        # Create spatial coordinates
+        self.spatial_shape = spatial_shape
+        self.spatial_fov = spatial_fov
+        self.spatial_distances = [
+            f.to(units.deg)/s for f, s in zip(spatial_fov, spatial_shape)]
+        self.spatial_center = spatial_center
+        self.spatial_wcs = build_astropy_wcs(
+            center=spatial_center,
+            shape=spatial_shape,
+            fov=(spatial_fov[0].to(units.deg),
+                 spatial_fov[1].to(units.deg)),
+            rotation=spatial_rotation,
+            coordinate_system=spatial_coordinate_system,
         )
 
-    @property
-    def dvol(self) -> Unit:
-        """Computes the area of a grid cell (pixel) in angular units."""
-        return self.distances[0] * self.distances[1]
+        self.spectral_colors = spectral_colors
 
-    def world_extrema(
+    @property
+    def shape(self):
+        '''Shape of the grid. (spectral, spatial)'''
+        return self.spectral_colors.shape + self.spatial_shape
+
+    @property
+    def spatial_dvol(self) -> Unit:
+        """Computes the area of a grid cell (pixel) in angular units."""
+        return self.spatial_distances[0] * self.spatial_distances[1]
+
+    def spatial_world_extrema(
         self,
         extend_factor: float = 1,
         ext: Optional[tuple[int, int]] = None
     ) -> ArrayLike:
         """
-        The world location of the center of the pixels with the index
+        The world location of the spatial_center of the pixels with the index
         locations = ((0, 0), (0, -1), (-1, 0), (-1, -1))
 
         Parameters
@@ -110,18 +114,19 @@ class Grid:
         with the rows.
         """
         if ext is None:
-            ext0, ext1 = [int(shp*extend_factor-shp)//2 for shp in self.shape]
+            ext0, ext1 = [int(shp*extend_factor-shp) //
+                          2 for shp in self.spatial_shape]
         else:
             ext0, ext1 = ext
 
         xmin = -ext0
-        xmax = self.shape[0] + ext1  # - 1 FIXME: Which of the two
+        xmax = self.spatial_shape[0] + ext1  # - 1 FIXME: Which of the two
         ymin = -ext1
-        ymax = self.shape[1] + ext1  # - 1
-        return self.wcs.wl_from_index([
+        ymax = self.spatial_shape[1] + ext1  # - 1
+        return self.spatial_wcs.wl_from_index([
             (xmin, ymin), (xmin, ymax), (xmax, ymin), (xmax, ymax)])
 
-    def index_grid(
+    def spatial_index_grid(
         self,
         extend_factor=1,
         to_bottom_left=True
@@ -149,20 +154,19 @@ class Grid:
             extended_centered = (-1, 0, 1, 2, 3)
             extended_bottom_left = (0, 1, 2, 3, -1)
         """
-        extent = [int(s * extend_factor) for s in self.shape]
-        extent = [(e - s) // 2 for s, e in zip(self.shape, extent)]
-        x, y = [np.arange(-e, s+e) for e, s in zip(extent, self.shape)]
+        extent = [int(s * extend_factor) for s in self.spatial_shape]
+        extent = [(e - s) // 2 for s, e in zip(self.spatial_shape, extent)]
+        x, y = [np.arange(-e, s+e) for e, s in zip(extent, self.spatial_shape)]
         if to_bottom_left:
             x, y = np.roll(x, -extent[0]), np.roll(y, -extent[1])
         return np.meshgrid(x, y, indexing='xy')
 
     def distances_in_units_of(self, unit: Unit) -> list[float]:
-        return [d.to(unit).value for d in self.distances]
+        return [d.to(unit).value for d in self.spatial_distances]
 
     def extent(self, unit=units.arcsec):
         """Convenience method which gives the extent of the grid in
         physical units."""
-        distances = [d.to(unit).value for d in self.distances]
-        shape = self.shape
-        halfside = np.array(shape)/2 * np.array(distances)
+        spatial_distances = [d.to(unit).value for d in self.spatial_distances]
+        halfside = np.array(self.spatial_shape)/2 * np.array(spatial_distances)
         return -halfside[0], halfside[0], -halfside[1], halfside[1]

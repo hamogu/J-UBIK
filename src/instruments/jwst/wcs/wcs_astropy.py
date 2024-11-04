@@ -108,9 +108,9 @@ COORD_CONFIGS = {
 }
 
 
-def _check_if_implemented(coord_system: str):
-    if coord_system not in COORD_CONFIGS:
-        raise ValueError(f"Unsupported coordinate system: {coord_system}."
+def _check_if_implemented(coordinate_system: str):
+    if coordinate_system not in COORD_CONFIGS:
+        raise ValueError(f"Unsupported coordinate system: {coordinate_system}."
                          f"Supported systems {COORD_CONFIGS.keys()}")
 
 
@@ -119,7 +119,7 @@ def build_astropy_wcs(
     shape: tuple[int, int],
     fov: tuple[Unit, Unit],
     rotation: Unit = 0.0 * units.deg,
-    coord_system: str = 'icrs',
+    coordinate_system: str = 'icrs',
     equinox: Optional[float] = None
 ) -> WcsAstropy:
     """
@@ -136,7 +136,7 @@ def build_astropy_wcs(
         The field of view of the grid. Typically given in degrees.
     rotation : units.Quantity
         The rotation of the grid WCS, in degrees.
-    coord_system : str
+    coordinate_system : str
         Coordinate system to use ('icrs', 'fk5', 'fk4', 'galactic')
     equinox : float, optional
         Equinox for FK4/FK5 systems (e.g., 2000.0 for J2000)
@@ -149,12 +149,12 @@ def build_astropy_wcs(
     pc22 = np.cos(rotation_value)
 
     # Get coordinate system configuration
-    coord_system = coord_system.lower()
-    _check_if_implemented(coord_system)
-    config = COORD_CONFIGS[coord_system]
+    coordinate_system = coordinate_system.lower()
+    _check_if_implemented(coordinate_system)
+    config = COORD_CONFIGS[coordinate_system]
 
     # Transform center coordinates if necessary
-    if coord_system == 'galactic':
+    if coordinate_system == 'galactic':
         lon = center.galactic.l.deg
         lat = center.galactic.b.deg
     else:
@@ -182,7 +182,7 @@ def build_astropy_wcs(
     }
 
     # Set equinox if needed for FK4/FK5
-    if coord_system in ['fk4', 'fk5']:
+    if coordinate_system in ['fk4', 'fk5']:
         header['EQUINOX'] = (
             config.default_equinox if equinox is None else equinox)
 
