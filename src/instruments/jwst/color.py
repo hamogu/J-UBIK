@@ -83,7 +83,7 @@ class Color(u.Quantity):
         return Color((1+z)*self.wavelength)
 
     def __repr__(self):
-        return f'{self.energy}'
+        return f'Color({self.energy})'
 
 
 class ColorRange():
@@ -125,7 +125,7 @@ class ColorRange():
 
     def __repr__(self):
         """Returns a string representation of the ColorRange object."""
-        return f'[{self.start.energy}, {self.end.energy}]'
+        return f'ColorRange([{self.start.energy}, {self.end.energy}])'
 
 
 class BinnedColorRanges():

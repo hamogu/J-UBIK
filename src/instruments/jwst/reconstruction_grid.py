@@ -161,7 +161,7 @@ class Grid:
             x, y = np.roll(x, -extent[0]), np.roll(y, -extent[1])
         return np.meshgrid(x, y, indexing='xy')
 
-    def distances_in_units_of(self, unit: Unit) -> list[float]:
+    def spatial_distances_in_units_of(self, unit: Unit) -> list[float]:
         return [d.to(unit).value for d in self.spatial_distances]
 
     def extent(self, unit=units.arcsec):
