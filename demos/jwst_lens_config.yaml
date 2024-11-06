@@ -1,7 +1,7 @@
 cpu: False
 prior_samples: False
 plot_results: True
-nonparametric_lens: True
+nonparametric_lens: False
 max_residuals: Null # 4 for big run
 no_interactive_plotting: True
 
@@ -35,7 +35,7 @@ grid:
       # - 0.114 # F1000W
       # - 0.143 # F770W
       # - 0.201 # F560W
-      # - 0.249 # F444W
+      - 0.249 # F444W
       - 0.319 # F356W  # mistake here actually 0.311
       # - 0.396 # F277W
       # - 0.557 # F200W
@@ -49,7 +49,7 @@ grid:
       # - 0.137 # F1000W
       # - 0.188 # F770W
       # - 0.245 # F560W
-      # - 0.319 # F444W
+      - 0.319 # F444W
       - 0.395 # F356W
       # - 0.512 # F277W
       # - 0.707 # F200W
@@ -100,7 +100,7 @@ telescope:
 
 files:
   # res_dir: './results/jwst_lens/filter_consistency_test/f1500w_single_01'
-  res_dir: './results/jwst_lens/filter_consistency_test/f356w_single_03_test'
+  res_dir: './results/jwst_lens/filter_consistency_test/f356w_f444w_01_test'
 
   pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
 
@@ -156,9 +156,9 @@ files:
     #   - './data/spt0418/f560w/jw01355015001_03101_00003_mirimage/jw01355015001_03101_00003_mirimage_cal.fits'
     #   - './data/spt0418/f560w/jw01355015001_03101_00004_mirimage/jw01355015001_03101_00004_mirimage_cal.fits'
 
-    # f444w: # NIRCam
-    #   - './data/spt0418/f444w/jw01355016001_02105_00001_nrcblong/jw01355016001_02105_00001_nrcblong_cal.fits'
-    #   - './data/spt0418/f444w/jw01355016001_02105_00002_nrcblong/jw01355016001_02105_00002_nrcblong_cal.fits'
+    f444w: # NIRCam
+      - './data/spt0418/f444w/jw01355016001_02105_00001_nrcblong/jw01355016001_02105_00001_nrcblong_cal.fits'
+      - './data/spt0418/f444w/jw01355016001_02105_00002_nrcblong/jw01355016001_02105_00002_nrcblong_cal.fits'
 
     f356w:
       - './data/spt0418/f356w/jw01355016001_02103_00001_nrcblong/jw01355016001_02103_00001_nrcblong_cal.fits'
