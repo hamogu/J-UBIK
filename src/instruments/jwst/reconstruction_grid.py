@@ -59,7 +59,7 @@ class Grid:
             The coordinate system of the spatial domain.
         """
 
-        # Create spatial coordinates
+        # Spatial
         self.spatial_shape = spatial_shape
         self.spatial_fov = spatial_fov
         self.spatial_distances = [
@@ -74,7 +74,14 @@ class Grid:
             coordinate_system=spatial_coordinate_system,
         )
 
+        # Spectral
         self.spectral_colors = spectral_colors
+
+        # Polarization
+        self.polarization_labels = ['I']
+
+        # Time
+        self.times = [-np.inf, np.inf]
 
     @property
     def shape(self):
@@ -161,7 +168,7 @@ class Grid:
             x, y = np.roll(x, -extent[0]), np.roll(y, -extent[1])
         return np.meshgrid(x, y, indexing='xy')
 
-    def spatial_distances_in_units_of(self, unit: Unit) -> list[float]:
+    def spatial_distances_in(self, unit: Unit) -> list[float]:
         return [d.to(unit).value for d in self.spatial_distances]
 
     def extent(self, unit=units.arcsec):
