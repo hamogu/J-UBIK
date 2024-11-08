@@ -16,6 +16,8 @@ from numpy.typing import ArrayLike
 from .wcs.wcs_astropy import build_astropy_wcs
 from .color import ColorRanges
 
+from .parse.grid_parse import GridModel
+
 
 class Grid:
     """
@@ -82,6 +84,17 @@ class Grid:
 
         # Time
         self.times = [-np.inf, np.inf]
+
+    @classmethod
+    def from_grid_model(cls, grid_model: GridModel):
+        return Grid(
+            spatial_center=grid_model.sky_center,
+            spatial_shape=grid_model.shape,
+            spatial_fov=grid_model.fov,
+            spectral_colors=grid_model.color_ranges,
+            spatial_rotation=grid_model.rotation,
+            spatial_coordinate_system=grid_model.coordinate_system,
+        )
 
     @property
     def shape(self):

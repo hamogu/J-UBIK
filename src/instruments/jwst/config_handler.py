@@ -6,102 +6,12 @@
 # %
 
 import numpy as np
-from typing import Tuple, Optional
+from typing import Optional
 
 from astropy import units
-from astropy.coordinates import SkyCoord
 
 from .grid import Grid
 from .jwst_data import JwstData
-from .color import Color, ColorRange, BinnedColorRanges
-
-
-def _get_world_location(config: dict) -> SkyCoord:
-    """Get the world location from the config."""
-    ra = config['grid']['pointing']['ra']
-    dec = config['grid']['pointing']['dec']
-    frame = config['grid']['pointing'].get('frame', 'icrs')
-    unit = getattr(units, config['grid']['pointing'].get('unit', 'deg'))
-    return SkyCoord(ra=ra*unit, dec=dec*unit, frame=frame)
-
-
-def _get_shape(config: dict) -> Tuple[int, int]:
-    """Get the shape from the config."""
-    npix = config['grid']['sdim']
-    return (npix, npix)
-
-
-def _get_fov(config: dict) -> Tuple[units.Quantity, units.Quantity]:
-    """Get the fov from the config."""
-    fov = config['grid']['fov']
-    unit = getattr(units, config['grid'].get('fov_unit', 'arcsec'))
-    return fov*unit
-
-
-def _get_rotation(config: dict) -> units.Quantity:
-    """Get the rotation from the config."""
-    rotation = config['grid']['pointing']['rotation']
-    unit = getattr(units, config['grid']['pointing'].get('unit', 'deg'))
-    return rotation*unit
-
-
-def _get_coordinate_system(config: dict) -> str:
-    """Get the coordinate system from the config."""
-    return config['grid']['pointing']['frame']
-
-
-def _get_binned_colors(config: dict) -> BinnedColorRanges:
-    energy_unit = config['grid']['energy_unit']
-    energy_bin = config['grid']['energy_bin']
-    emins, emaxs = energy_bin['e_min'], energy_bin['e_max']
-
-    color_ranges = []
-    eunit = getattr(units, energy_unit)
-    for emin, emax in zip(emins, emaxs):
-        emin, emax = emin*eunit, emax*eunit
-        color_ranges.append(ColorRange(Color(emin), Color(emax)))
-
-    return BinnedColorRanges(color_ranges)
-
-
-def build_reconstruction_grid_from_config(config: dict) -> Grid:
-    """
-    Builds the reconstruction grid from the given configuration.
-
-    The reconstruction grid is defined by the world location, field of view
-    (FOV), shape (resolution), and rotation, all specified in the input
-    configuration. These parameters are extracted from the config dictionary
-    using helper functions.
-
-    Parameters
-    ----------
-    config : dict
-        The configuration dictionary containing the following keys:
-        - 'world_location': World coordinates defining the center of the grid.
-        - 'fov': Field of view of the grid in appropriate units.
-        - 'shape': Shape of the grid (resolution) as a tuple (nx, ny).
-        - 'rotation': Rotation of the grid in degrees.
-
-    Returns
-    -------
-    Grid
-        A `Grid` object constructed using the world location, shape,
-        field of view, and rotation provided in the configuration.
-    """
-    wl = _get_world_location(config)
-    fov = _get_fov(config)
-    shape = _get_shape(config)
-    rotation = _get_rotation(config)
-    coordinate_system = _get_coordinate_system(config)
-    binned_colors = _get_binned_colors(config)
-    return Grid(
-        spatial_center=wl,
-        spatial_shape=shape,
-        spatial_fov=(fov.to(units.deg), fov.to(units.deg)),
-        spectral_colors=binned_colors,
-        spatial_rotation=rotation,
-        spatial_coordinate_system=coordinate_system,
-    )
 
 
 def build_filter_zero_flux(
