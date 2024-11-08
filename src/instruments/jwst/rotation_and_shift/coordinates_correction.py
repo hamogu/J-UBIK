@@ -218,13 +218,13 @@ def build_coordinates_correction_model_from_grid(
     if priors is None:
         return lambda _: coords
 
+    header = data_wcs.to_header()
+
     if isinstance(data_wcs, WcsJwstData):
-        header = data_wcs._wcs.to_fits()[0]
         rpix = (header['CRPIX1'],),  (header['CRPIX2'],)
         rpix = data_wcs.wl_from_index(rpix)
     elif isinstance(data_wcs, WcsAstropy):
         # FIXME: The following lines should be the same with the previous
-        header = data_wcs._wcs.to_header()
         rpix = (header['CRPIX1'],  header['CRPIX2'])
         rpix = data_wcs.wl_from_index(rpix)[0]
     else:
@@ -233,12 +233,12 @@ def build_coordinates_correction_model_from_grid(
             "supported. Supported types [WcsAstropy, WcsJwstData]."
         )
 
-    rpix = reconstruction_grid.spatial_wcs.index_from_wl(rpix)[0]
+    rpix = reconstruction_grid.spatial.index_from_wl(rpix)[0]
 
     return build_coordinates_correction_model(
         domain_key=domain_key,
         priors=priors,
         pix_distance=[rd.to(u.arcsec).value for rd in
-                      reconstruction_grid.spatial_distances],
+                      reconstruction_grid.spatial.distances],
         rotation_center=rpix,
         coords=coords)

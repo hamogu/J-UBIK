@@ -69,3 +69,6 @@ class WcsJwstData(WcsBase):
         if isinstance(wl, SkyCoord):
             wl = [wl]
         return np.array([self.wcs.world_to_pixel(w) for w in wl])
+
+    def to_header(self):
+        return self.wcs.to_fits()[0]

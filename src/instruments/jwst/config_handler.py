@@ -139,12 +139,12 @@ def get_psf_extension_from_config(
     if psf_pixels is not None:
         psf_ext = int(config['telescope']['psf']['psf_pixels'] // 2)
         psf_ext = [int(np.sqrt(jwst_data.dvol) * psf_ext / dist)
-                   for dist in reconstruction_grid.spatial_distances]
+                   for dist in reconstruction_grid.spatial.distances]
 
     psf_arcsec = config['telescope']['psf'].get('psf_arcsec')
     if psf_arcsec is not None:
         psf_ext = [int((psf_arcsec*units.arcsec).to(units.deg) / 2 / dist)
-                   for dist in reconstruction_grid.spatial_distances]
+                   for dist in reconstruction_grid.spatial.distances]
 
     if psf_arcsec is None and psf_pixels is None:
         raise ValueError(
@@ -154,7 +154,7 @@ def get_psf_extension_from_config(
     return psf_ext
 
 
-def insert_spaces_in_lensing(cfg):
+def _parse_insert_spaces(cfg):
     lens_fov = cfg['grid']['fov']
     lens_npix = cfg['grid']['sdim']
     lens_padd = cfg['grid']['s_padding_ratio']
@@ -179,5 +179,18 @@ def insert_spaces_in_lensing(cfg):
                         energy_bin=source_energy_bin,
                         )
 
+    return lens_space, source_space
+
+
+def insert_spaces_in_lensing(cfg):
+    lens_space, source_space = _parse_insert_spaces(cfg)
+
     cfg['lensing']['spaces'] = dict(
+        lens_space=lens_space, source_space=source_space)
+
+
+def insert_spaces_in_lensing_new(cfg):
+    lens_space, source_space = _parse_insert_spaces(cfg)
+
+    cfg['spaces'] = dict(
         lens_space=lens_space, source_space=source_space)
