@@ -14,7 +14,7 @@ from astropy.units import Unit
 from numpy.typing import ArrayLike
 
 from .wcs.wcs_astropy import build_astropy_wcs
-from .color import BinnedColorRanges
+from .color import ColorRanges
 
 
 class Grid:
@@ -33,7 +33,7 @@ class Grid:
         spatial_center: SkyCoord,
         spatial_shape: Tuple[int, int],
         spatial_fov: Tuple[Unit, Unit],
-        spectral_colors: BinnedColorRanges,
+        spectral_colors: ColorRanges,
         spatial_rotation: Unit = 0.0 * units.deg,
         spatial_coordinate_system: Optional[str] = 'icrs',
     ):

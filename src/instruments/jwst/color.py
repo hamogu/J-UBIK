@@ -86,7 +86,7 @@ class Color(u.Quantity):
         return f'Color({self.energy})'
 
 
-class ColorRange():
+class ColorRange:
     """
     A class representing a range of colors, defined by start and
     end Color objects.
@@ -128,7 +128,7 @@ class ColorRange():
         return f'ColorRange([{self.start.energy}, {self.end.energy}])'
 
 
-class BinnedColorRanges():
+class ColorRanges:
     """
     A class representing multiple bins of colors, i.e. a set of color ranges.
 
@@ -198,7 +198,7 @@ class BinnedColorRanges():
         crs = ''
         for ii, cr in enumerate(self.color_ranges):
             crs += f'\n{ii}: {cr.__repr__()}'
-        return f'{crs}'
+        return f'ColorRanges({crs})'
 
     def __contains__(self, item: Color):
         return any([item in cr for cr in self.color_ranges])
