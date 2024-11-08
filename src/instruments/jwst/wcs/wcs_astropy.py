@@ -20,15 +20,14 @@ from .wcs_base import WcsBase
 from dataclasses import dataclass
 
 
-class WcsAstropy(WcsBase):
+class WcsAstropy(WCS, WcsBase):
     """
     A wrapper around the astropy wcs, in order to define a common interface
     with the gwcs.
     """
 
     def __init__(self, header: dict):
-        wcs = WCS(header)
-        super().__init__(wcs)
+        super().__init__(header)
 
     def wl_from_index(
         self, index: ArrayLike
