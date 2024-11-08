@@ -7,7 +7,7 @@ ENERGY_BIN_KEY = 'energy_bin'
 REFERENCE_BIN_KEY = 'reference_bin'
 
 
-def _yaml_to_binned_colors(grid_config: dict) -> ColorRanges:
+def yaml_to_binned_colors(grid_config: dict) -> ColorRanges:
     EMIN_KEY = 'e_min'
     EMAX_KEY = 'e_max'
 
@@ -22,5 +22,5 @@ def _yaml_to_binned_colors(grid_config: dict) -> ColorRanges:
     return ColorRanges(color_ranges)
 
 
-def _yaml_to_color_reference_bin(grid_config: dict) -> int:
+def yaml_to_color_reference_bin(grid_config: dict) -> int:
     return grid_config[ENERGY_BIN_KEY][REFERENCE_BIN_KEY]

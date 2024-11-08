@@ -4,6 +4,10 @@
 # Copyright(C) 2024 Max-Planck-Society
 
 # %%
+from .wcs_base import WcsBase
+from ..parse.wcs.coordinate_system import (
+    CoordinateSystemModel, CoordinateSystems)
+from ..parse.wcs.wcs_astropy import WcsModel
 
 import numpy as np
 
@@ -13,47 +17,6 @@ from typing import List, Union, Optional
 from astropy.coordinates import SkyCoord
 from astropy.wcs import WCS
 from astropy import units as u
-
-from .wcs_base import WcsBase
-
-from dataclasses import dataclass
-
-
-@dataclass
-class CoordSystemConfig:
-    """Configuration for a coordinate system."""
-    ctypes: tuple[str, str]
-    radesys: str
-    default_equinox: Optional[float] = None
-
-
-# Mapping of coordinate systems to their configurations
-COORD_CONFIGS = {
-    'icrs': CoordSystemConfig(
-        ctypes=('RA---TAN', 'DEC--TAN'),
-        radesys='ICRS'
-    ),
-    'fk5': CoordSystemConfig(
-        ctypes=('RA---TAN', 'DEC--TAN'),
-        radesys='FK5',
-        default_equinox=2000.0
-    ),
-    'fk4': CoordSystemConfig(
-        ctypes=('RA---TAN', 'DEC--TAN'),
-        radesys='FK4',
-        default_equinox=1950.0
-    ),
-    'galactic': CoordSystemConfig(
-        ctypes=('GLON-TAN', 'GLAT-TAN'),
-        radesys='GALACTIC'
-    )
-}
-
-
-def _check_if_implemented(coordinate_system: str):
-    if coordinate_system not in COORD_CONFIGS:
-        raise ValueError(f"Unsupported coordinate system: {coordinate_system}."
-                         f"Supported systems {COORD_CONFIGS.keys()}")
 
 
 class WcsAstropy(WCS, WcsBase):
@@ -68,8 +31,7 @@ class WcsAstropy(WCS, WcsBase):
         shape: tuple[int, int],
         fov: tuple[u.Quantity, u.Quantity],
         rotation: u.Quantity = 0.0 * u.deg,
-        coordinate_system: str = 'icrs',
-        equinox: Optional[float] = None
+        coordinate_system: Optional[CoordinateSystemModel] = CoordinateSystems.icrs.value
     ):
         """
         Create FITS header, use it to instantiate an WcsAstropy.
@@ -84,7 +46,7 @@ class WcsAstropy(WCS, WcsBase):
             The field of view of the grid. Typically given in degrees.
         rotation : u.Quantity
             The rotation of the grid WCS, in degrees.
-        coordinate_system : str
+        coordinate_system : CoordinateSystemConfig
             Coordinate system to use ('icrs', 'fk5', 'fk4', 'galactic')
         equinox : float, optional
             Equinox for FK4/FK5 systems (e.g., 2000.0 for J2000)
@@ -103,13 +65,8 @@ class WcsAstropy(WCS, WcsBase):
         pc21 = np.sin(rotation_value)
         pc22 = np.cos(rotation_value)
 
-        # Get coordinate system configuration
-        coordinate_system = coordinate_system.lower()
-        _check_if_implemented(coordinate_system)
-        config = COORD_CONFIGS[coordinate_system]
-
         # Transform center coordinates if necessary
-        if coordinate_system == 'galactic':
+        if coordinate_system.radesys == CoordinateSystems.galactic.value.radesys:
             lon = center.galactic.l.deg
             lat = center.galactic.b.deg
         else:
@@ -119,8 +76,8 @@ class WcsAstropy(WCS, WcsBase):
         # Build the header dictionary
         header = {
             'WCSAXES': 2,
-            'CTYPE1': config.ctypes[0],
-            'CTYPE2': config.ctypes[1],
+            'CTYPE1': coordinate_system.ctypes[0],
+            'CTYPE2': coordinate_system.ctypes[1],
             'CRPIX1': shape[0] / 2 + 0.5,
             'CRPIX2': shape[1] / 2 + 0.5,
             'CRVAL1': lon,
@@ -131,17 +88,28 @@ class WcsAstropy(WCS, WcsBase):
             'PC1_2': pc12,
             'PC2_1': pc21,
             'PC2_2': pc22,
-            'RADESYS': config.radesys,
+            'RADESYS': coordinate_system.radesys,
             'CUNIT1': 'deg',
             'CUNIT2': 'deg',
         }
 
         # Set equinox if needed for FK4/FK5
-        if coordinate_system in ['fk4', 'fk5']:
-            header['EQUINOX'] = (
-                config.default_equinox if equinox is None else equinox)
+        if coordinate_system.radesys in [
+                CoordinateSystems.fk4.value.radesys,
+                CoordinateSystems.fk5.value.radesys]:
+            header['EQUINOX'] = coordinate_system.equinox
 
         super().__init__(header)
+
+    @classmethod
+    def from_wcs_model(cls, wcs_model: WcsModel):
+        return WcsAstropy(
+            wcs_model.center,
+            wcs_model.shape,
+            wcs_model.fov,
+            wcs_model.rotation,
+            wcs_model.coordinate_system,
+        )
 
     # TODO: Check output axis, RENAME index_from_world_location
     def wl_from_index(

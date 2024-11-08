@@ -55,16 +55,9 @@ class Grid:
 
     @classmethod
     def from_grid_model(cls, grid_model: GridModel):
-        spatial = WcsAstropy(
-            center=grid_model.sky_center,
-            shape=grid_model.shape,
-            fov=grid_model.fov,
-            rotation=grid_model.rotation,
-            coordinate_system=grid_model.coordinate_system,
-        )
-
+        '''Build Grid from GridModel.'''
+        spatial = WcsAstropy.from_wcs_model(grid_model.wcs_model)
         spectral = grid_model.color_ranges
-
         return Grid(spatial, spectral)
 
     @property
