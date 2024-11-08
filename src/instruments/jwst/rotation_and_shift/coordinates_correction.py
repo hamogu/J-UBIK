@@ -14,7 +14,7 @@ from jax.numpy import array
 from numpy.typing import ArrayLike
 
 from ..parametric_model import build_parametric_prior
-from ..reconstruction_grid import Grid
+from ..grid import Grid
 from ..wcs.wcs_astropy import WcsAstropy
 from ..wcs.wcs_jwst_data import WcsJwstData
 

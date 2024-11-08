@@ -16,7 +16,7 @@ from .coordinates_correction import (
 from .linear_rotation_and_shift import build_linear_rotation_and_shift
 from .nufft_rotation_and_shift import build_nufft_rotation_and_shift
 from .sparse_rotation_and_shift import build_sparse_rotation_and_shift
-from ..reconstruction_grid import Grid
+from ..grid import Grid
 from ..wcs import (subsample_grid_centers_in_index_grid_non_vstack,
                    subsample_grid_corners_in_index_grid_non_vstack)
 from ..wcs.wcs_base import WcsBase

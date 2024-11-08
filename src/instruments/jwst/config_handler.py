@@ -11,7 +11,7 @@ from typing import Tuple, Optional
 from astropy import units
 from astropy.coordinates import SkyCoord
 
-from .reconstruction_grid import Grid
+from .grid import Grid
 from .jwst_data import JwstData
 from .color import Color, ColorRange, BinnedColorRanges
 
