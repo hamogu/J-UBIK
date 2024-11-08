@@ -64,3 +64,11 @@ class Grid:
     def shape(self):
         '''Shape of the grid. (spectral, spatial)'''
         return self.spectral.shape + self.spatial.shape
+
+    def __repr__(self):
+        return ('Grid('
+                f'\npolarization_labels={self.polarization_labels}\n'
+                f'\ntimes={self.times}\n'
+                f'\nspectral={self.spectral}\n'
+                f'\nspatial={self.spatial}\n'
+                ')')
