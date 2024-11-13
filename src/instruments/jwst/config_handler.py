@@ -4,14 +4,28 @@
 # Copyright(C) 2024 Max-Planck-Society
 
 # %
+from .grid import Grid
+from ...hashcollector import save_local_packages_hashes_to_txt
+from ...utils import save_config_copy_easy
 
-import numpy as np
+import os
+import yaml
+
 from typing import Optional
 
-from astropy import units
+from astropy import units as u
 
-from .grid import Grid
-from .jwst_data import JwstData
+
+def load_yaml_and_save_info(config_path):
+    cfg = yaml.load(open(config_path, 'r'), Loader=yaml.SafeLoader)
+    results_directory = cfg['files']['res_dir']
+    os.makedirs(results_directory, exist_ok=True)
+    save_local_packages_hashes_to_txt(
+        ['nifty8', 'charm_lensing', 'jubik0'],
+        os.path.join(results_directory, 'hashes.txt'))
+    save_config_copy_easy(config_path, os.path.join(
+        results_directory, 'config.yaml'))
+    return cfg, results_directory
 
 
 def build_filter_zero_flux(
@@ -97,10 +111,10 @@ def build_coordinates_correction_prior_from_config(
         shift = rs_priors['shift']
         rotation = rs_priors['rotation']
 
-    rotation_unit = getattr(units, rs_priors.get('rotation_unit', 'deg'))
+    rotation_unit = getattr(u, rs_priors.get('rotation_unit', 'deg'))
     rotation = (rotation[0],
                 rotation[1],
-                (rotation[2] * rotation_unit).to(units.rad).value)
+                (rotation[2] * rotation_unit).to(u.rad).value)
     return dict(shift=shift, rotation=rotation)
 
 
@@ -130,28 +144,36 @@ def config_transform(config: dict):
             config_transform(val)
 
 
-def get_psf_extension_from_config(
+def get_grid_extension_from_config(
     config: dict,
-    jwst_data: JwstData,
     reconstruction_grid: Grid,
 ):
-    psf_pixels = config['telescope']['psf'].get('psf_pixels')
-    if psf_pixels is not None:
-        psf_ext = int(config['telescope']['psf']['psf_pixels'] // 2)
-        psf_ext = [int(np.sqrt(jwst_data.dvol) * psf_ext / dist)
-                   for dist in reconstruction_grid.spatial.distances]
+    '''Load the grid extension for the reconstruction grid. The reconstruction
+    gets zero padded by this amount. This is needed to avoid wrapping flux due
+    to fft convolution of the psf.
 
-    psf_arcsec = config['telescope']['psf'].get('psf_arcsec')
-    if psf_arcsec is not None:
-        psf_ext = [int((psf_arcsec*units.arcsec).to(units.deg) / 2 / dist)
-                   for dist in reconstruction_grid.spatial.distances]
+    Parameters
+    ----------
+    config: dict
+        The config dict holds psf_arcsec_extension, which holds the extension
+        in units of arcsec.
+    reconstruction_grid: Grid
+        The grid underlying the reconstruction.
 
-    if psf_arcsec is None and psf_pixels is None:
-        raise ValueError(
-            'Need to provide either `psf_arcsec` or `psf_pixels`.'
-        )
+    Returns
+    -------
+    grid_extension: tuple[int]
+        A pixel number tuple, that specifies by how many pixels the
+        reconstruction will be zero padded.
+    '''
 
-    return psf_ext
+    psf_arcsec_extension = config['telescope']['psf'].get(
+        'psf_arcsec_extension')
+    if psf_arcsec_extension is None:
+        raise ValueError('Need to provide either `psf_arcsec_extension`.')
+
+    return [int((psf_arcsec_extension*u.arcsec).to(u.deg) / 2 / dist)
+            for dist in reconstruction_grid.spatial.distances]
 
 
 def _parse_insert_spaces(cfg):

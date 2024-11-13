@@ -12,7 +12,7 @@ from astropy.coordinates import SkyCoord
 from numpy.typing import ArrayLike
 
 from .coordinates_correction import (
-    build_coordinates_correction_model_from_grid, CoordinatesCorrection)
+    build_coordinates_correction_from_grid, CoordinatesCorrection)
 from .linear_rotation_and_shift import build_linear_rotation_and_shift
 from .nufft_rotation_and_shift import build_nufft_rotation_and_shift
 from .sparse_rotation_and_shift import build_sparse_rotation_and_shift
@@ -134,7 +134,7 @@ def build_rotation_and_shift_model(
 
     assert reconstruction_grid.spatial.dvol.unit == data_grid_dvol.unit
 
-    correction_model = build_coordinates_correction_model_from_grid(
+    correction_model = build_coordinates_correction_from_grid(
         coordinate_correction['domain_key'] if coordinate_correction is not None else None,
         coordinate_correction['priors'] if coordinate_correction is not None else None,
         data_grid_wcs,
@@ -182,6 +182,8 @@ def build_rotation_and_shift_model(
                     subsample),
             )
 
+            # Note: the output of the correction_model gets ignored by the
+            # sparse rotation call.
             def correction_model(_): return None
 
         case _:

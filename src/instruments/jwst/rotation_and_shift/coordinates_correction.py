@@ -79,7 +79,7 @@ class CoordinatesCorrection(jft.Model):
         return jnp.array((x, y))
 
 
-def build_coordinates_correction_model(
+def build_coordinates_correction(
     domain_key: str,
     priors: Optional[dict],
     pix_distance: tuple[float],
@@ -169,7 +169,7 @@ def build_coordinates_correction_model(
     )
 
 
-def build_coordinates_correction_model_from_grid(
+def build_coordinates_correction_from_grid(
     domain_key: str,
     priors: Optional[dict],
     data_wcs: Union[WcsJwstData, WcsAstropy],
@@ -235,7 +235,7 @@ def build_coordinates_correction_model_from_grid(
 
     rpix = reconstruction_grid.spatial.index_from_wl(rpix)[0]
 
-    return build_coordinates_correction_model(
+    return build_coordinates_correction(
         domain_key=domain_key,
         priors=priors,
         pix_distance=[rd.to(u.arcsec).value for rd in
