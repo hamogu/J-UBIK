@@ -4,6 +4,7 @@
 # Copyright(C) 2024 Max-Planck-Society
 
 # %
+from .parse.jwst_psf_parse import PsfKernelModel
 
 from functools import partial
 from os.path import join, isfile
@@ -229,6 +230,50 @@ def load_psf_kernel(
 
     np.save(path_to_file, psf)
     return psf
+
+
+def load_psf_kernel_from_psf_kernel_model(
+    psf_kernel_model: Optional[PsfKernelModel]
+) -> ArrayLike:
+    """
+    Loads or computes the Point Spread Function (PSF) kernel for a specified
+    camera and filter.
+
+    This function attempts to load a precomputed PSF kernel from a specified
+    library path.
+    If the PSF kernel file does not exist, it computes the PSF using the
+    `build_webb_psf` function, saves the result to the specified library path,
+    and then returns the PSF data.
+
+    Parameters
+    ----------
+    psf_kernel_model: PsfKernelModel
+        - camera : str
+        - filter : str
+        - center_pixel : tuple of float
+        - webbpsf_path : str
+        - psf_library_path : str
+        - subsample : int
+        - psf_arcsec : float, optional
+        - normalize : str, optional
+
+    Returns
+    -------
+    numpy.ndarray
+        The PSF data as a 2D array.
+    """
+    if psf_kernel_model is None:
+        return None
+
+    return load_psf_kernel(
+        camera=psf_kernel_model.camera,
+        filter=psf_kernel_model.filter,
+        center_pixel=psf_kernel_model.pointing_center,
+        webbpsf_path=psf_kernel_model.webbpsf_path,
+        psf_library_path=psf_kernel_model.psf_library_path,
+        psf_arcsec=psf_kernel_model.psf_arcsec,
+        subsample=psf_kernel_model.subsample,
+    )
 
 
 def psf_operator_fft(field, kernel):

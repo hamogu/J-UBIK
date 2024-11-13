@@ -5,16 +5,18 @@
 
 # %
 
+from .integration_model import build_sum
+from .jwst_psf import instantiate_psf, load_psf_kernel_from_psf_kernel_model
+from .rotation_and_shift import build_rotation_and_shift_model, \
+    RotationAndShiftModel
+from .zero_flux_model import build_zero_flux_model
+from .parse.jwst_psf_parse import PsfKernelModel
+
+
 from typing import Callable, Optional
 
 import nifty8.re as jft
 from numpy.typing import ArrayLike
-
-from .integration_model import build_sum
-from .jwst_psf import instantiate_psf, load_psf_kernel
-from .rotation_and_shift import build_rotation_and_shift_model, \
-    RotationAndShiftModel
-from .zero_flux_model import build_zero_flux_model
 
 
 class JwstResponse(jft.Model):
@@ -101,7 +103,7 @@ def build_jwst_response(
     sky_domain: dict,
     subsample: int,
     rotation_and_shift_kwargs: Optional[dict],
-    psf_kwargs: dict,
+    psf_kernel_model: PsfKernelModel,
     transmission: float,
     data_mask: Optional[ArrayLike],
     zero_flux: Optional[dict],
@@ -137,7 +139,7 @@ def build_jwst_response(
                 - rotation: Mean and sigma of the Gaussian distribution
                 for theta [rad]
 
-    psf_kwargs:
+    psf_kernel_model:
         camera: str, NIRCam or MIRI
         filter: str
         center_pix: tuple, pixel according to which to evaluate the psf model
@@ -178,16 +180,8 @@ def build_jwst_response(
         reduction_factor=subsample,
     )
 
-    psf_kernel = load_psf_kernel(
-        camera=psf_kwargs['camera'],
-        filter=psf_kwargs['filter'],
-        center_pixel=psf_kwargs['center_pixel'],
-        webbpsf_path=psf_kwargs['webbpsf_path'],
-        psf_library_path=psf_kwargs['psf_library_path'],
-        psf_pixels=psf_kwargs.get('psf_pixels'),
-        psf_arcsec=psf_kwargs.get('psf_arcsec'),
-        subsample=subsample,
-    ) if len(psf_kwargs) != 0 else None
+    assert subsample == psf_kernel_model.subsample
+    psf_kernel = load_psf_kernel_from_psf_kernel_model(psf_kernel_model)
     psf = instantiate_psf(psf_kernel)
 
     if zero_flux is None:
