@@ -4,6 +4,7 @@
 # Copyright(C) 2024 Max-Planck-Society
 
 # %
+from .grid import Grid
 
 import nifty8.re as jft
 from typing import Optional
@@ -81,3 +82,22 @@ class FilterProjector(jft.Model):
 
     def __call__(self, x):
         return {key: x[index] for key, index in self.keys_and_index.items()}
+
+
+def build_filter_projector_from_named_color_ranges(
+    sky_domain: jft.ShapeWithDtype,
+    grid: Grid,
+    named_color_ranges: dict,
+    data_filter_names: list[str],
+):
+    keys_and_colors = {}
+    for grid_color_range in grid.spectral:
+        for name in data_filter_names:
+            jwst_filter = named_color_ranges[name.upper()]
+            if grid_color_range.center in jwst_filter:
+                keys_and_colors[name] = grid_color_range
+
+    return FilterProjector(
+        sky_domain=sky_domain,
+        keys_and_colors=keys_and_colors,
+    )
