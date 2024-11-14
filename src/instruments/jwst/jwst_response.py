@@ -190,10 +190,7 @@ def build_jwst_response(
     zero_flux_model = build_zero_flux_model(
         data_identifier, zero_flux_prior_config)
 
-    if data_mask is None:
-        def mask(x): return x
-    else:
-        def mask(x): return x[data_mask]
+    mask = build_mask(data_mask)
 
     return JwstResponse(sky_domain=sky_domain,
                         rotation_and_shift=rotation_and_shift,
