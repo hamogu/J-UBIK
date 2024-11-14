@@ -7,13 +7,15 @@
 
 from .integration_model import build_sum
 from .jwst_psf import instantiate_psf, load_psf_kernel_from_psf_kernel_model
-from .rotation_and_shift import build_rotation_and_shift_model, \
-    RotationAndShiftModel
+from .rotation_and_shift import (
+    build_rotation_and_shift_model, RotationAndShiftModel)
 from .zero_flux_model import build_zero_flux_model
+from .masking.build_mask import build_mask
+
 from .parse.jwst_psf_parse import PsfKernelModel
+from .parse.parametric_model.parametric_prior import PriorConfig
 
-
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 import nifty8.re as jft
 from numpy.typing import ArrayLike
@@ -101,12 +103,13 @@ class JwstResponse(jft.Model):
 
 def build_jwst_response(
     sky_domain: dict,
+    data_identifier: str,
     subsample: int,
     rotation_and_shift_kwargs: Optional[dict],
     psf_kernel_model: PsfKernelModel,
     transmission: float,
     data_mask: Optional[ArrayLike],
-    zero_flux: Optional[dict],
+    zero_flux_prior_config: Optional[PriorConfig],
 ) -> JwstResponse:
     """
     Builds the data model for a Jwst observation.
@@ -184,10 +187,8 @@ def build_jwst_response(
     psf_kernel = load_psf_kernel_from_psf_kernel_model(psf_kernel_model)
     psf = instantiate_psf(psf_kernel)
 
-    if zero_flux is None:
-        zero_flux_model = None
-    else:
-        zero_flux_model = build_zero_flux_model(zero_flux['dkey'], zero_flux)
+    zero_flux_model = build_zero_flux_model(
+        data_identifier, zero_flux_prior_config)
 
     if data_mask is None:
         def mask(x): return x

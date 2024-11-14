@@ -28,42 +28,6 @@ def load_yaml_and_save_info(config_path):
     return cfg, results_directory
 
 
-def build_filter_zero_flux(
-    config: dict,
-    filter: str,
-) -> dict:
-    """
-    Builds the zero flux prior for the specified filter.
-
-    This function retrieves the zero flux prior for a given filter from the
-    configuration dictionary. If the filter-specific prior is not available,
-    it falls back to a general prior defined in the configuration.
-
-    Parameters
-    ----------
-    config : dict
-        The configuration dictionary containing the zero flux priors for
-        different filters under `config['telescope']['zero_flux']`.
-
-    filter : str
-        The name of the filter (case-insensitive) for which the zero flux prior
-        is to be built.
-
-    Returns
-    -------
-    dict
-        A dictionary containing the zero flux prior for the specified filter.
-        If the filter is not present, returns the default prior.
-    """
-    prior_config = config['telescope']['zero_flux']
-    lower_filter = filter.lower()
-
-    if lower_filter in prior_config:
-        return dict(prior=prior_config[lower_filter])
-
-    return dict(prior=prior_config['prior'])
-
-
 def build_coordinates_correction_prior_from_config(
     config: dict,
     filter: Optional[str] = '',

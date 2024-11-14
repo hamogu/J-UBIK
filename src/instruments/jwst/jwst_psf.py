@@ -269,10 +269,10 @@ def load_psf_kernel_from_psf_kernel_model(
         camera=psf_kernel_model.camera,
         filter=psf_kernel_model.filter,
         center_pixel=psf_kernel_model.pointing_center,
-        webbpsf_path=psf_kernel_model.webbpsf_path,
-        psf_library_path=psf_kernel_model.psf_library_path,
-        psf_arcsec=psf_kernel_model.psf_arcsec,
         subsample=psf_kernel_model.subsample,
+        webbpsf_path=psf_kernel_model.config_parameters.webbpsf_path,
+        psf_library_path=psf_kernel_model.config_parameters.psf_library_path,
+        psf_arcsec=psf_kernel_model.config_parameters.psf_arcsec,
     )
 
 

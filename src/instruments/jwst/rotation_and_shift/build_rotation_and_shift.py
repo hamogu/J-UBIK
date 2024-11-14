@@ -140,10 +140,10 @@ def build_rotation_and_shift_model(
         data_grid_wcs,
         reconstruction_grid,
         subsample_grid_centers_in_index_grid_non_vstack(
-            world_extrema,
-            data_grid_wcs,
-            reconstruction_grid.spatial,
-            subsample)
+            world_extrema=world_extrema,
+            to_be_subsampled_grid_wcs=data_grid_wcs,
+            index_grid_wcs=reconstruction_grid.spatial,
+            subsample=subsample)
     )
 
     match model_type:

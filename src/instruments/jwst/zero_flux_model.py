@@ -5,16 +5,22 @@
 
 # %
 
+from .parametric_model import build_parametric_prior_from_prior_config
+from .parse.zero_flux_model import ZeroFluxPriorConfigs
+from .parse.parametric_model.parametric_prior import PriorConfig
+
 import nifty8.re as jft
 
-from .parametric_model import build_parametric_prior
+from typing import Union, Optional
 
 ZERO_FLUX_KEY = 'zero_flux'
+DEFAULT_KEY = 'default'
+SHAPE = (1,)
 
 
 def build_zero_flux_model(
     prefix: str,
-    likelihood_config: dict,
+    prior_config: Optional[PriorConfig],
 ) -> jft.Model:
     """
     Build a zero flux model based on the provided likelihood configuration.
@@ -40,12 +46,25 @@ def build_zero_flux_model(
         If no configuration is provided, the model returns zero;
         otherwise, it uses a parametric prior.
     """
-    model_cfg = likelihood_config.get(ZERO_FLUX_KEY, None)
-    if model_cfg is None:
-        return jft.Model(lambda _: 0, domain=dict())
+    if prior_config is None:
+        return None
 
     prefix = '_'.join([prefix, ZERO_FLUX_KEY])
 
-    shape = (1,)
-    prior = build_parametric_prior(prefix, model_cfg['prior'], shape)
-    return jft.Model(prior, domain={prefix: jft.ShapeWithDtype(shape)})
+    prior = build_parametric_prior_from_prior_config(
+        prefix, prior_config, SHAPE)
+    return jft.Model(prior, domain={prefix: jft.ShapeWithDtype(SHAPE)})
+
+
+def get_filter_or_default_prior(
+    filter_name: str,
+    zero_flux_prior_config: Optional[ZeroFluxPriorConfigs] = None,
+) -> Union[DefaultPriorConfig, UniformPriorConfig, DeltaPriorConfig]:
+    '''Returns the PriorConfig for the `filter_name` or the default.'''
+
+    if zero_flux_prior_config is None:
+        return None
+
+    if filter_name in zero_flux_prior_config.filters:
+        return zero_flux_prior_config.filters[filter_name]
+    return zero_flux_prior_config.default
