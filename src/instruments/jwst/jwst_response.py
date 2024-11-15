@@ -6,7 +6,7 @@
 # %
 
 from .integration_model import build_sum
-from .jwst_psf import instantiate_psf, load_psf_kernel_from_psf_kernel_model
+from .jwst_psf import build_psf_operator, load_psf_kernel_from_psf_kernel_model
 from .rotation_and_shift import (
     build_rotation_and_shift_model, RotationAndShiftModel)
 from .zero_flux_model import build_zero_flux_model
@@ -185,7 +185,7 @@ def build_jwst_response(
 
     assert subsample == psf_kernel_model.subsample
     psf_kernel = load_psf_kernel_from_psf_kernel_model(psf_kernel_model)
-    psf = instantiate_psf(psf_kernel)
+    psf = build_psf_operator(psf_kernel)
 
     zero_flux_model = build_zero_flux_model(
         data_identifier, zero_flux_prior_config)

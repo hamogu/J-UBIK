@@ -304,7 +304,7 @@ def psf_operator_fft(field, kernel):
     return fftconvolve(field, kernel, mode='same')
 
 
-def instantiate_psf(psf: ArrayLike | None) -> Callable[[ArrayLike], ArrayLike]:
+def build_psf_operator(psf: ArrayLike | None) -> Callable[[ArrayLike], ArrayLike]:
     """Build psf convolution operator from psf array. If None is provided the
     psf operator returns the field.
 
