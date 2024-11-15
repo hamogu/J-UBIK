@@ -1,4 +1,4 @@
-from .color_parse import yaml_to_binned_colors, yaml_to_color_reference_bin
+from .color import yaml_to_binned_colors, yaml_to_color_reference_bin
 from .wcs.wcs_astropy import yaml_to_wcs_model, WcsModel
 from ..color import ColorRanges
 
