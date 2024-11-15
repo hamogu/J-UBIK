@@ -1,19 +1,29 @@
 from .parametric_model.parametric_prior import (
-    DefaultPriorConfig, UniformPriorConfig, DeltaPriorConfig,
-    transform_setting_to_prior_config)
+    PriorConfig, transform_setting_to_prior_config)
 
 from dataclasses import dataclass
-from typing import Union, Optional
+from typing import Optional
 
 DEFAULT_KEY = 'default'
 
 
 @dataclass
 class ZeroFluxPriorConfigs:
-    default: Union[DefaultPriorConfig, UniformPriorConfig, DeltaPriorConfig]
-    filters: dict[
-        str, Union[DefaultPriorConfig, UniformPriorConfig, DeltaPriorConfig]
-    ]
+    default: PriorConfig
+    filters: dict[str, PriorConfig]
+
+    def get_filter_or_default(self, filter_name: str) -> PriorConfig:
+        '''Returns the PriorConfig for the `filter_name` or the default.
+
+        Parameters
+        ----------
+        filter_name : str
+            The filter in question.
+        '''
+        filter_name = filter_name.lower()
+        if filter_name in self.filters:
+            return self.filters[filter_name]
+        return self.default
 
 
 def yaml_to_zero_flux_prior_config(
