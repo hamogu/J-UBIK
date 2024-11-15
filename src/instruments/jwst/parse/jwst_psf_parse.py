@@ -1,6 +1,3 @@
-from ..jwst_data import JwstData
-
-from astropy.coordinates import SkyCoord
 from dataclasses import dataclass
 
 
@@ -12,8 +9,8 @@ NORMALIZE_DEFAULT = 'last'
 
 
 @dataclass
-class PsfKernelConfigParameters:
-    '''The PsfKernelConfigParameters is a data model for holding metadata for
+class PsfKernelConfig:
+    '''The PsfKernelConfig is a data model for holding metadata for
     the evaluation of the psf kernel.
 
     webbpsf_path : str
@@ -34,10 +31,10 @@ class PsfKernelConfigParameters:
     normalize: str
 
 
-def yaml_to_psf_kernel_config_parameters(
+def yaml_to_psf_kernel_config(
     psf_config: dict,
 ):
-    '''Read the PsfKernelConfigParameters from the yaml config.
+    '''Read the PsfKernelConfig from the yaml config.
 
     psf_config: dict
         The dictionary holding:
@@ -47,70 +44,9 @@ def yaml_to_psf_kernel_config_parameters(
             - normalize (Optional)
     '''
 
-    return PsfKernelConfigParameters(
+    return PsfKernelConfig(
         webbpsf_path=psf_config[WEBBPSF_PATH_KEY],
         psf_library_path=psf_config[PSF_LIBRARY_PATH_KEY],
         psf_arcsec=psf_config[PSF_ARCSEC_KEY],
-        normalize=psf_config.get(NORMALIZE_KEY, 'last'),
+        normalize=psf_config.get(NORMALIZE_KEY, NORMALIZE_DEFAULT),
     )
-
-
-@dataclass
-class PsfKernelModel:
-    '''The PsfKernelModel is a data model for the evaluation of the psf kernel.
-
-    Parameters
-    ----------
-    camera : str
-        The camera model for which to compute the PSF.
-        Options are 'nircam' and 'miri'.
-        This value is converted to lowercase before processing.
-    filter : str
-        The filter for which to compute the PSF.
-    center_pixel : tuple of float
-        The (x, y) coordinates of the center pixel for the PSF calculation.
-    subsample : int
-        The subsample factor for the PSF computation.
-    config_parameters: PsfKernelConfigParameters
-        Metadata for the evaluation of the psf kernel:
-            - webbpsf_path : str
-            - psf_library_path : str
-            - psf_arcsec : float
-            - normalize : str
-    '''
-    camera: str
-    filter: str
-    pointing_center: tuple[float, float]
-    subsample: int
-    config_parameters: PsfKernelConfigParameters
-
-    @classmethod
-    def from_jwst_pointing_subsample_and_config(
-        cls,
-        jwst_data: JwstData,
-        pointing_center: SkyCoord,
-        subsample: int,
-        config_parameters: PsfKernelConfigParameters
-    ):
-        '''Initialization for the `PsfKernelModel`.
-
-        Parameters
-        ----------
-        jwst_data: JwstData
-            jwst data with camera and filter
-        pointing_center: SkyCoord
-            The center of the observation for which the psf will be evaluted.
-            The psf kernel is assumed to be static across the field.
-        subsample: int
-            The subsample factor for the psf kernel.
-        '''
-
-        pointing_center = jwst_data.wcs.index_from_wl(pointing_center)[0]
-
-        return PsfKernelModel(
-            camera=jwst_data.camera,
-            filter=jwst_data.filter,
-            pointing_center=pointing_center,
-            subsample=subsample,
-            config_parameters=config_parameters,
-        )

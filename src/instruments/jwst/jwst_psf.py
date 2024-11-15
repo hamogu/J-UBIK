@@ -4,15 +4,18 @@
 # Copyright(C) 2024 Max-Planck-Society
 
 # %
-from .parse.jwst_psf_parse import PsfKernelModel
+from .jwst_data import JwstData
+from .parse.jwst_psf_parse import PsfKernelConfig
 
 from functools import partial
 from os.path import join, isfile
 from typing import Tuple, Callable, Optional
 
+
 import numpy as np
 from jax.scipy.signal import fftconvolve
 from numpy.typing import ArrayLike
+from astropy.coordinates import SkyCoord
 
 
 def build_webb_psf(
@@ -232,8 +235,11 @@ def load_psf_kernel(
     return psf
 
 
-def load_psf_kernel_from_psf_kernel_model(
-    psf_kernel_model: Optional[PsfKernelModel]
+def load_psf_kernel_from_config(
+    jwst_data: JwstData,
+    pointing_center: SkyCoord,
+    subsample: int,
+    config_parameters: PsfKernelConfig
 ) -> ArrayLike:
     """
     Loads or computes the Point Spread Function (PSF) kernel for a specified
@@ -247,77 +253,56 @@ def load_psf_kernel_from_psf_kernel_model(
 
     Parameters
     ----------
-    psf_kernel_model: PsfKernelModel
-        - camera : str
-        - filter : str
-        - center_pixel : tuple of float
-        - webbpsf_path : str
-        - psf_library_path : str
-        - subsample : int
-        - psf_arcsec : float, optional
-        - normalize : str, optional
+    jwst_data: JwstData
+        jwst data with camera and filter
+    pointing_center: SkyCoord
+        The center of the observation for which the psf will be evaluted.
+        The psf kernel is assumed to be static across the field.
+    subsample: int
+        The subsample factor for the psf kernel.
+    config_parameters: PsfKernelConfig
+        Holding the `webbpsf_path`, the `psf_library_path`, the size of the psf
+        evaluation `psf_arcsec`, and the `normalize` key.
 
     Returns
     -------
-    numpy.ndarray
-        The PSF data as a 2D array.
+    ArrayLike
+        The PSF kernel.
     """
-    if psf_kernel_model is None:
-        return None
+
+    pointing_center = jwst_data.wcs.index_from_wl(pointing_center)[0]
+    camera = jwst_data.camera
+    filter = jwst_data.filter
 
     return load_psf_kernel(
-        camera=psf_kernel_model.camera,
-        filter=psf_kernel_model.filter,
-        center_pixel=psf_kernel_model.pointing_center,
-        subsample=psf_kernel_model.subsample,
-        webbpsf_path=psf_kernel_model.config_parameters.webbpsf_path,
-        psf_library_path=psf_kernel_model.config_parameters.psf_library_path,
-        psf_arcsec=psf_kernel_model.config_parameters.psf_arcsec,
+        camera=camera,
+        filter=filter,
+        center_pixel=pointing_center,
+        subsample=subsample,
+        webbpsf_path=config_parameters.webbpsf_path,
+        psf_library_path=config_parameters.psf_library_path,
+        psf_arcsec=config_parameters.psf_arcsec,
+        normalize=config_parameters.normalize,
     )
 
 
-def psf_operator_fft(field, kernel):
-    """
-    Apply a Point Spread Function (PSF) operator using FFT-based convolution.
-
-    This function performs the convolution of an input field (e.g., an image)
-    with a PSF kernel using FFT (Fast Fourier Transform) for efficient
-    computation.
-    The convolution is done in 'same' mode, meaning the output array has the
-    same shape as the input field.
+def build_psf_operator(
+    psf_kernel: Optional[ArrayLike]
+) -> Optional[Callable[[ArrayLike], ArrayLike]]:
+    """Build psf convolution operator from psf kernel array.
+    If None is provided the psf operator returns the field.
 
     Parameters
     ----------
-    field : np.ndarray
-        The input 2D array (e.g., an image or field) to be convolved with
-        the kernel.
-    kernel : np.ndarray
-        The PSF kernel to apply to the field. It should have the same or
-        compatible dimensions as the field.
+    psf_kernel : ArrayLike or None
+        The psf kernel.
 
     Returns
     -------
-    np.ndarray
-        The resulting field after convolving with the PSF kernel.
-        This will have the same shape as the input field.
-    """
-    return fftconvolve(field, kernel, mode='same')
-
-
-def build_psf_operator(psf: ArrayLike | None) -> Callable[[ArrayLike], ArrayLike]:
-    """Build psf convolution operator from psf array. If None is provided the
-    psf operator returns the field.
-
-    Parameters
-    ----------
-    psf : ArrayLike or None
-
-    Return
-    ------
     Callable which convolves its input by the psf kernel.
     If psf kernel is None, the Callable is lambda x: x
     """
-    if psf is None:
+    if psf_kernel is None:
         return lambda x: x
 
-    return partial(psf_operator_fft, kernel=psf)
+    return partial(fftconvolve, in2=psf_kernel, mode='same')

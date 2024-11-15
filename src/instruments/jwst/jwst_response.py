@@ -6,16 +6,15 @@
 # %
 
 from .integration_model import build_sum
-from .jwst_psf import build_psf_operator, load_psf_kernel_from_psf_kernel_model
+from .jwst_psf import build_psf_operator
 from .rotation_and_shift import (
     build_rotation_and_shift_model, RotationAndShiftModel)
 from .zero_flux_model import build_zero_flux_model
 from .masking.build_mask import build_mask
 
-from .parse.jwst_psf_parse import PsfKernelModel
 from .parse.parametric_model.parametric_prior import PriorConfig
 
-from typing import Callable, Optional, Union
+from typing import Callable, Optional
 
 import nifty8.re as jft
 from numpy.typing import ArrayLike
@@ -106,7 +105,7 @@ def build_jwst_response(
     data_identifier: str,
     data_subsample: int,
     rotation_and_shift_kwargs: Optional[dict],
-    psf_kernel_model: PsfKernelModel,
+    psf_kernel: Optional[ArrayLike],
     transmission: float,
     zero_flux_prior_config: Optional[PriorConfig],
     data_mask: Optional[ArrayLike],
@@ -183,8 +182,6 @@ def build_jwst_response(
         reduction_factor=data_subsample,
     )
 
-    assert data_subsample == psf_kernel_model.subsample
-    psf_kernel = load_psf_kernel_from_psf_kernel_model(psf_kernel_model)
     psf = build_psf_operator(psf_kernel)
 
     zero_flux_model = build_zero_flux_model(
