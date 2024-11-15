@@ -104,12 +104,12 @@ class JwstResponse(jft.Model):
 def build_jwst_response(
     sky_domain: dict,
     data_identifier: str,
-    subsample: int,
+    data_subsample: int,
     rotation_and_shift_kwargs: Optional[dict],
     psf_kernel_model: PsfKernelModel,
     transmission: float,
-    data_mask: Optional[ArrayLike],
     zero_flux_prior_config: Optional[PriorConfig],
+    data_mask: Optional[ArrayLike],
 ) -> JwstResponse:
     """
     Builds the data model for a Jwst observation.
@@ -122,7 +122,7 @@ def build_jwst_response(
     sky_domain: dict
         Containing the sky_key and the shape_dtype of the reconstruction sky.
 
-    subsample: int
+    data_subsample: int
         The subsample factor for the data grid.
 
     rotation_and_shift_kwargs: dict
@@ -165,7 +165,7 @@ def build_jwst_response(
         data_grid_dvol=rotation_and_shift_kwargs['data_dvol'],
         data_grid_wcs=rotation_and_shift_kwargs['data_wcs'],
         model_type=rotation_and_shift_kwargs['data_model_type'],
-        subsample=subsample,
+        subsample=data_subsample,
         kwargs=dict(
             linear=rotation_and_shift_kwargs.get(
                 'kwargs_linear', dict(order=1, sky_as_brightness=False)),
@@ -180,10 +180,10 @@ def build_jwst_response(
 
     integrate = build_sum(
         high_res_shape=rotation_and_shift.target.shape,
-        reduction_factor=subsample,
+        reduction_factor=data_subsample,
     )
 
-    assert subsample == psf_kernel_model.subsample
+    assert data_subsample == psf_kernel_model.subsample
     psf_kernel = load_psf_kernel_from_psf_kernel_model(psf_kernel_model)
     psf = build_psf_operator(psf_kernel)
 
