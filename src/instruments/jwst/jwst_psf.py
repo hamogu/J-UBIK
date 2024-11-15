@@ -5,7 +5,7 @@
 
 # %
 from .jwst_data import JwstData
-from .parse.jwst_psf_parse import PsfKernelConfig
+from .parse.jwst_psf import PsfKernelConfig
 
 from functools import partial
 from os.path import join, isfile
