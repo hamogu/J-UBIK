@@ -35,6 +35,13 @@ def yaml_to_grid_model(grid_config: dict) -> GridModel:
         - `energy_bin`: Holding `e_min`, `e_max`, and `reference_bin`.
         - `energy_unit`: The units for `e_min` and `e_max`
 
+    Returns:
+    --------
+    GridModel
+        The GridModel which holds
+            - wcs_model: how to build the wcs for the spatial coordinates.
+            - color_ranges: The ColorRanges for the energies.
+            - color_reference_bin: The reference_bin for the energy model.
     '''
     wcs_model = yaml_to_wcs_model(grid_config)
     color_ranges = yaml_to_binned_colors(grid_config)
