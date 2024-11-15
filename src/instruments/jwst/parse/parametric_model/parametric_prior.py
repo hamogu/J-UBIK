@@ -2,14 +2,22 @@ from abc import ABC
 from typing import Union, Optional
 from dataclasses import dataclass
 
+DISTRIBUTION_KEY = 'distribution'
 
-class PriorConfig(ABC):
+
+class ProbabilityConfig(ABC):
     distribution: str
     transformation: Optional[str]
 
+    def to_list(self) -> list:
+        '''Return the ProbabilityConfig as a tuple.'''
+        # NOTE: __annotations__ keeps the order of the fields of the
+        # make_dataclass used inside create_distribution_config_class
+        return list(getattr(self, field) for field in self.__annotations__.keys())
+
 
 @dataclass
-class DefaultPriorConfig(PriorConfig):
+class DefaultPriorConfig(ProbabilityConfig):
     distribution: str
     mean: float
     sigma: float
@@ -17,7 +25,7 @@ class DefaultPriorConfig(PriorConfig):
 
 
 @dataclass
-class UniformPriorConfig(PriorConfig):
+class UniformPriorConfig(ProbabilityConfig):
     distribution: str
     min: float
     max: float
@@ -25,65 +33,35 @@ class UniformPriorConfig(PriorConfig):
 
 
 @dataclass
-class DeltaPriorConfig(PriorConfig):
+class DeltaPriorConfig(ProbabilityConfig):
     distribution: str
     mean: float
     transformation: Optional[str] = None
 
 
-DISTRIBUTION_KEY = 'distribution'
+def transform_setting_to_prior_config(settings: Union[dict, tuple]):
+    """Transforms the parameter distribution `settings` into a ProbabilityConfig."""
 
-
-def transform_setting_to_prior_config(parameters: Union[dict, tuple]):
-    """Transforms the prior setting into a dictionary."""
-    if isinstance(parameters, dict):
-        return _set_prior_dict(parameters)
-
-    elif isinstance(parameters, tuple) or isinstance(parameters, list):
-        return _set_prior_tuple_or_list(parameters)
-
-    raise NotImplementedError
-
-
-def _set_prior_dict(parameters: dict[str, Union[str, float]]):
-    '''Transforms tuple into a PriorConfig'''
-
-    distribution = parameters[DISTRIBUTION_KEY]
-    distribution = distribution.lower() if type(
-        distribution) == str else distribution
+    distribution = (settings[DISTRIBUTION_KEY] if isinstance(settings, dict)
+                    else settings[0])
+    distribution = (distribution.lower() if type(distribution) == str
+                    else distribution)
 
     match distribution:
         case 'uniform':
-            return UniformPriorConfig(**parameters)
+            return (
+                UniformPriorConfig(**settings) if isinstance(settings, dict)
+                else UniformPriorConfig(*settings)
+            )
 
         case 'delta' | None:
-            return DeltaPriorConfig(**parameters)
+            return (
+                DeltaPriorConfig(**settings) if isinstance(settings, dict)
+                else DeltaPriorConfig(*settings)
+            )
 
         case _:
-            return DefaultPriorConfig(**parameters)
-
-
-def _set_prior_tuple_or_list(parameters: tuple[str, float, float]):
-    '''Transforms tuple or list into a PriorConfig'''
-
-    distribution = parameters[0]
-    distribution = distribution.lower() if type(
-        distribution) == str else distribution
-
-    match distribution:
-        case 'uniform':
-            return UniformPriorConfig(
-                distribution=distribution,
-                min=parameters[1],
-                max=parameters[2])
-
-        case 'delta' | None:
-            return DeltaPriorConfig(
-                distribution=distribution,
-                mean=parameters[1])
-
-        case _:
-            return DefaultPriorConfig(
-                distribution=distribution,
-                mean=parameters[1],
-                sigma=parameters[2])
+            return (
+                DefaultPriorConfig(**settings) if isinstance(settings, dict)
+                else DefaultPriorConfig(*settings)
+            )

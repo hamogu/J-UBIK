@@ -6,7 +6,7 @@
 # %
 
 from .parametric_model import build_parametric_prior_from_prior_config
-from .parse.parametric_model.parametric_prior import PriorConfig
+from .parse.parametric_model.parametric_prior import ProbabilityConfig
 
 import nifty8.re as jft
 
@@ -19,7 +19,7 @@ SHAPE = (1,)
 
 def build_zero_flux_model(
     prefix: str,
-    prior_config: Optional[PriorConfig],
+    prior_config: Optional[ProbabilityConfig],
 ) -> Optional[jft.Model]:
     """
     Build a zero flux model based on the provided PriorConfig.

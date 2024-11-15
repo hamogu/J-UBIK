@@ -4,7 +4,7 @@
 # Copyright(C) 2024 Max-Planck-Society
 
 # %%
-from ..parse.parametric_model.parametric_prior import PriorConfig
+from ..parse.parametric_model.parametric_prior import ProbabilityConfig
 
 from typing import Callable, Tuple, Union
 
@@ -171,7 +171,7 @@ def build_parametric_prior(
 
 def build_parametric_prior_from_prior_config(
     domain_key: str,
-    prior_config: PriorConfig,
+    prior_config: ProbabilityConfig,
     shape: Tuple[int] = ()
 ) -> Callable:
     """

@@ -1,5 +1,11 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# Authors: Julian Rüstig
+
+# Copyright(C) 2024 Max-Planck-Society
+
+# %
 from .parametric_model.parametric_prior import (
-    PriorConfig, transform_setting_to_prior_config)
+    ProbabilityConfig, transform_setting_to_prior_config)
 
 from dataclasses import dataclass
 from typing import Optional
@@ -9,10 +15,10 @@ DEFAULT_KEY = 'default'
 
 @dataclass
 class ZeroFluxPriorConfigs:
-    default: PriorConfig
-    filters: dict[str, PriorConfig]
+    default: ProbabilityConfig
+    filters: dict[str, ProbabilityConfig]
 
-    def get_filter_or_default(self, filter_name: str) -> PriorConfig:
+    def get_filter_or_default(self, filter_name: str) -> ProbabilityConfig:
         '''Returns the PriorConfig for the `filter_name` or the default.
 
         Parameters

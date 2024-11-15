@@ -12,7 +12,7 @@ from .rotation_and_shift import (
 from .zero_flux_model import build_zero_flux_model
 from .masking.build_mask import build_mask
 
-from .parse.parametric_model.parametric_prior import PriorConfig
+from .parse.parametric_model.parametric_prior import ProbabilityConfig
 
 from typing import Callable, Optional
 
@@ -107,7 +107,7 @@ def build_jwst_response(
     rotation_and_shift_kwargs: Optional[dict],
     psf_kernel: Optional[ArrayLike],
     transmission: float,
-    zero_flux_prior_config: Optional[PriorConfig],
+    zero_flux_prior_config: Optional[ProbabilityConfig],
     data_mask: Optional[ArrayLike],
 ) -> JwstResponse:
     """
