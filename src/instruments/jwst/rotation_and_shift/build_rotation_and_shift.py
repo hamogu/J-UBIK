@@ -21,6 +21,9 @@ from ..wcs import (subsample_grid_centers_in_index_grid_non_vstack,
                    subsample_grid_corners_in_index_grid_non_vstack)
 from ..wcs.wcs_base import WcsBase
 
+from ..parse.rotation_and_shift.coordinates_correction import (
+    CoordiantesCorrectionPriorConfig)
+
 
 class RotationAndShiftModel(jft.Model):
     """

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-2-Clause
-# Authors: Julian Rüstig and Matteo Guardiani
+# Authors: Julian Rüstig
 
 # Copyright(C) 2024 Max-Planck-Society
 
@@ -10,8 +10,6 @@ from ...utils import save_config_copy_easy
 
 import os
 import yaml
-
-from typing import Optional
 
 from astropy import units as u
 
@@ -26,60 +24,6 @@ def load_yaml_and_save_info(config_path):
     save_config_copy_easy(config_path, os.path.join(
         results_directory, 'config.yaml'))
     return cfg, results_directory
-
-
-def build_coordinates_correction_prior_from_config(
-    config: dict,
-    filter: Optional[str] = '',
-    filter_data_set_id: Optional[int] = 0
-) -> dict:
-    """
-    Builds the coordinate correction prior for the specified filter and dataset.
-
-    The function extracts the shift and rotation priors for the given filter and
-    dataset ID from the configuration.
-    If the specific filter or dataset ID is not found, it returns the default
-    shift and rotation priors. The rotation prior is converted to radians
-    if needed.
-
-    Parameters
-    ----------
-    config : dict
-        The configuration dictionary containing rotation and shift priors under
-        `config['telescope']['rotation_and_shift']['priors']`.
-
-    filter : Optional[str], default=''
-        The name of the filter (case-insensitive) for which the prior is needed.
-        If not specified, the default priors are used.
-
-    filter_data_set_id : Optional[int], default=0
-        The dataset ID for which the prior is needed. If not provided or not
-        found, the function uses the default dataset priors.
-
-    Returns
-    -------
-    dict
-        A dictionary containing the shift and rotation priors for the specified
-        filter and dataset. If the filter or dataset is not found, returns the
-        default priors.
-    """
-    rs_priors = config['telescope']['rotation_and_shift']['priors']
-
-    lower_filter = filter.lower()
-    if ((lower_filter in rs_priors) and
-            (filter_data_set_id in rs_priors.get(lower_filter, dict()))):
-        shift = rs_priors[lower_filter][filter_data_set_id]['shift']
-        rotation = rs_priors[lower_filter][filter_data_set_id]['rotation']
-
-    else:
-        shift = rs_priors['shift']
-        rotation = rs_priors['rotation']
-
-    rotation_unit = getattr(u, rs_priors.get('rotation_unit', 'deg'))
-    rotation = (rotation[0],
-                rotation[1],
-                (rotation[2] * rotation_unit).to(u.rad).value)
-    return dict(shift=shift, rotation=rotation)
 
 
 def config_transform(config: dict):
