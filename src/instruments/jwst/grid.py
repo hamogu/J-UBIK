@@ -11,7 +11,7 @@ import numpy as np
 from .wcs.wcs_astropy import WcsAstropy
 from .color import ColorRanges
 
-from .parse.grid_parse import GridModel
+from .parse.grid import GridModel
 
 
 class Grid:
