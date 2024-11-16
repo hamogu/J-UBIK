@@ -12,7 +12,7 @@ import nifty8.re as jft
 
 from .mock_data.mock_evaluation import redchi2
 from .mock_data.mock_plotting import display_text
-from .rotation_and_shift.coordinates_correction import CoordinatesCorrection
+from .rotation_and_shift.coordinates_correction import CoordinatesWithCorrection
 from .filter_projector import FilterProjector
 
 from charm_lensing.lens_system import LensSystem
@@ -67,9 +67,9 @@ def get_position_or_samples_of_model(
 
 def get_shift_rotation_correction(
     position_or_samples: Union[dict, jft.Samples],
-    correction_model: Optional[CoordinatesCorrection],
+    correction_model: Optional[CoordinatesWithCorrection],
 ):
-    if not isinstance(correction_model, CoordinatesCorrection):
+    if not isinstance(correction_model, CoordinatesWithCorrection):
         return (0, 0), (0, 0), 0, 0
 
     shift_mean, shift_std = get_position_or_samples_of_model(

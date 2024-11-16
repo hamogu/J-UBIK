@@ -12,7 +12,7 @@ from astropy.coordinates import SkyCoord
 from numpy.typing import ArrayLike
 
 from .coordinates_correction import (
-    build_coordinates_correction_from_grid, CoordinatesCorrection)
+    build_coordinates_correction_from_grid, CoordinatesWithCorrection)
 from .linear_rotation_and_shift import build_linear_rotation_and_shift
 from .nufft_rotation_and_shift import build_nufft_rotation_and_shift
 from .sparse_rotation_and_shift import build_sparse_rotation_and_shift
@@ -38,7 +38,7 @@ class RotationAndShiftModel(jft.Model):
         self,
         sky_domain: dict,
         call: Callable,
-        correction_model: Union[Callable, CoordinatesCorrection],
+        correction_model: Union[Callable, CoordinatesWithCorrection],
     ):
         """
         Initialize the RotationAndShiftModel.
@@ -64,7 +64,7 @@ class RotationAndShiftModel(jft.Model):
         self.call = call
 
         correction_domain = correction_model.domain if isinstance(
-            correction_model, CoordinatesCorrection) else {}
+            correction_model, CoordinatesWithCorrection) else {}
         super().__init__(domain=sky_domain | correction_domain)
 
     def __call__(self, x):
@@ -160,7 +160,7 @@ def build_rotation_and_shift_model(
         case 'nufft':
             # TODO: check output shape
             out_shape = correction_model.target.shape[1:] if isinstance(
-                correction_model, CoordinatesCorrection) else correction_model(None).shape[1:]
+                correction_model, CoordinatesWithCorrection) else correction_model(None).shape[1:]
 
             call = build_nufft_rotation_and_shift(
                 sky_dvol=reconstruction_grid.spatial.dvol.value,

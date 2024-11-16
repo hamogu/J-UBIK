@@ -9,6 +9,7 @@ from ..parametric_model.parametric_prior import (
 
 from astropy import units as u
 from dataclasses import dataclass
+from typing import Optional
 
 
 ROTATION_UNIT_KEY = 'rotation_unit'
@@ -53,8 +54,13 @@ class CoordiantesCorrectionPriorConfig:
 
 @dataclass
 class CoordiantesCorrectionConfig:
+    '''This class saves the `CoordiantesCorrectionPrior`s for the coordinate
+    correction. Specifics can be provided for the different filters and their
+    multiple datasets (dithers, etc.). If a specific filter gets a None, the
+    coordinates from the data are fixed to the provided values.
+    '''
     default: CoordiantesCorrectionPriorConfig
-    filters: dict[str, list[CoordiantesCorrectionPriorConfig]]
+    filters: dict[str, list[Optional[CoordiantesCorrectionPriorConfig]]]
 
     def get_filter_or_default(self, filter_name: str, data_index: int) -> ProbabilityConfig:
         '''Returns the PriorConfig for the `filter_name` and `data_index` or the default.
@@ -77,12 +83,10 @@ def yaml_to_coordinates_correction_config(
 ) -> dict:
     '''Parses the coordinate correction prior configuration.
 
-
     Parameters
     ----------
     config : dict
         The configuration dictionary containing the rotation and shift priors.
-
     '''
 
     rotation_unit = getattr(
@@ -107,14 +111,15 @@ def yaml_to_coordinates_correction_config(
 
         filter_prior_list = []
         for data_index, prior_settings in data_indices.items():
-            filter_prior_list.append(CoordiantesCorrectionPriorConfig(
+            filter_data_prior = CoordiantesCorrectionPriorConfig(
                 shift=transform_setting_to_prior_config(
                     prior_settings[SHIFT_KEY]),
                 shift_unit=shift_unit,
                 rotation=transform_setting_to_prior_config(
                     prior_settings[ROTATION_KEY]),
                 rotation_unit=rotation_unit,
-            ))
+            ) if prior_settings is not None else None
+            filter_prior_list.append(filter_data_prior)
 
         filters[filter_name] = filter_prior_list
 

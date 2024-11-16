@@ -22,7 +22,7 @@ from ..parse.rotation_and_shift.coordinates_correction import (
     CoordiantesCorrectionPriorConfig)
 
 
-class CoordinatesCorrection(jft.Model):
+class CoordinatesWithCorrection(jft.Model):
     """
     Applies rotation and shift corrections to a set of coordinates.
 
@@ -82,13 +82,21 @@ class CoordinatesCorrection(jft.Model):
         return jnp.array((x, y))
 
 
+class Coordinates:
+    def __init__(self, coordiantes: ArrayLike):
+        self.coordinates = coordiantes
+
+    def __call__(self, _):
+        return self.coordinates
+
+
 def build_coordinates_correction_from_grid(
     domain_key: str,
     priors: Optional[CoordiantesCorrectionPriorConfig],
     data_wcs: Union[WcsJwstData, WcsAstropy],
     reconstruction_grid: Grid,
     coords: ArrayLike,
-) -> Union[Callable[[dict, ArrayLike], ArrayLike], CoordinatesCorrection]:
+) -> Union[Coordinates, CoordinatesWithCorrection]:
     """Builds a `CoordinatesCorrection` model based on a grid and WCS data.
     If priors are None, it returns a lambda function that simply
     returns the original coordinates.
@@ -134,7 +142,7 @@ def build_coordinates_correction_from_grid(
     """
 
     if priors is None:
-        return lambda _: coords
+        return Coordinates(coords)
 
     header = data_wcs.to_header()
 
@@ -174,7 +182,7 @@ def build_coordinates_correction_from_grid(
     rotation_prior_model = jft.Model(
         rotation_prior, domain={rotation_key: jft.ShapeWithDtype(rot_shape)})
 
-    return CoordinatesCorrection(
+    return CoordinatesWithCorrection(
         shift_prior_model,
         rotation_prior_model,
         pix_distance,
