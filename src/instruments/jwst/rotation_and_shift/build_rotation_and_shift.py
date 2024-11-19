@@ -88,26 +88,19 @@ def build_rotation_and_shift_model(
     ----------
     sky_domain: dict
         Containing the sky_key and the shape_dtype of the reconstruction sky.
-
     world_extrema: Tuple[SkyCoord]
         The corners of the grid to be rotated and shifted into.
-
     reconstruction_grid: Grid
         The Grid underlying the reconstruction domain.
-
     data_grid_dvol: float
         The volume of the data pixel.
-
     data_grid_wcs: WcsBase
         The world coordinate system of the data grid.
-
     model_type: str
         The type of the rotation and shift model: (linear, nufft, sparse)
-
     subsample: int
         The subsample factor for the data grid. How many times a data pixel is
         subsampled in each direction.
-
     kwargs: dict
         linear:  dict, options
             - order: (0, 1), default: 1
@@ -120,15 +113,11 @@ def build_rotation_and_shift_model(
 
         nufft: dict, options
             - sky_as_brightness: default: False
-
     coordinate_correction: dict
         domain_key: str
-        priors: dict
-            - shift: Mean and sigma for the Gaussian distribution of
-            shift model.
-            - rotation: Mean and sigma of the Gaussian distribution
-            for theta [rad]
-
+        priors: CoordiantesCorrectionPriorConfig
+            - shift (prior for the shift)
+            - rotation (prior for the rotation)
 
     Returns
     -------

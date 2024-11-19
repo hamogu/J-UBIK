@@ -209,10 +209,10 @@ class JwstData:
 def load_jwst_data_mask_std(
     filepath: str,
     grid: Grid,
-    grid_extension: tuple[int]
+    world_corners: list[SkyCoord],
 ) -> [JwstData, ArrayLike, ArrayLike, ArrayLike]:
     '''Load the data from filepath and return the data, mask, and std cutouts
-    according to the reconstruction grid and grid_extension.
+    according to the reconstruction grid and `world_corners`.
 
     Parameters
     ----------
@@ -220,9 +220,8 @@ def load_jwst_data_mask_std(
         Path to the jwst data.
     grid: Grid
         The physical grid underlying the reconstruction
-    grid_extension: tuple[int]
-        A tuple holding by how much the reconstruction gets zero padded. Hence,
-        the data, mask, and std have to extended by this amount.
+    world_corners: list[SkyCoord]
+        A list holding the four world corners of the reconstruction grid.
 
     Returns
     -------
@@ -234,19 +233,15 @@ def load_jwst_data_mask_std(
 
     jwst_data = JwstData(filepath)
 
-    # TODO: Check that this is actually necessery to extend these by the grid_extension
     mask = get_mask_from_index_centers(
         np.squeeze(subsample_grid_centers_in_index_grid(
-            grid.spatial.world_extrema(ext=grid_extension),
+            world_corners,
             jwst_data.wcs,
             grid.spatial,
             1)),
         grid.spatial.shape)
-    mask *= jwst_data.nan_inside_extrema(
-        grid.spatial.world_extrema(ext=grid_extension))
-    data = jwst_data.data_inside_extrema(
-        grid.spatial.world_extrema(ext=grid_extension))
-    std = jwst_data.std_inside_extrema(
-        grid.spatial.world_extrema(ext=grid_extension))
+    mask *= jwst_data.nan_inside_extrema(world_corners)
+    data = jwst_data.data_inside_extrema(world_corners)
+    std = jwst_data.std_inside_extrema(world_corners)
 
     return jwst_data, data, mask, std
