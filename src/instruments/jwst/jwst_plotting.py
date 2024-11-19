@@ -136,13 +136,15 @@ def determine_xlen_residuals(data_dict: dict, xmax_residuals):
     return maximum  # because 0 is already there and will not be counted
 
 
-def determine_xpos(dkey: str):
+def _determine_xpos(dkey: str):
+    '''Determine the x position of the panel in the residual plot'''
     index = int(dkey.split('_')[-1])
     return 3 + index
 
 
-def determine_ypos(dkey: str, filter_projector: FilterProjector):
-    ekey = dkey.split('_')[1]
+def _determine_ypos(dkey: str, filter_projector: FilterProjector):
+    '''Determine the y position of the panel in the residual plot'''
+    ekey = dkey.split('_')[0]
     return filter_projector.keys_and_index[ekey]
 
 
@@ -199,8 +201,8 @@ def build_plot_sky_residuals(
             position_or_samples, sky_model_with_key)
         for dkey, data in data_dict.items():
 
-            xpos_residual = determine_xpos(dkey)
-            ypos = determine_ypos(dkey, filter_projector)
+            xpos_residual = _determine_xpos(dkey)
+            ypos = _determine_ypos(dkey, filter_projector)
             if xpos_residual > xlen - 1:
                 continue
 

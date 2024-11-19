@@ -233,6 +233,8 @@ def load_jwst_data_mask_std(
 
     jwst_data = JwstData(filepath)
 
+    # TODO: Use a simpler algorithm. Check that its consistent with the
+    # subsampling of the rotation and shift model.
     mask = get_mask_from_index_centers(
         np.squeeze(subsample_grid_centers_in_index_grid(
             world_corners,

@@ -147,7 +147,7 @@ def build_coordinates_correction_from_grid(
     header = data_wcs.to_header()
 
     if isinstance(data_wcs, WcsJwstData):
-        rpix = (header['CRPIX1'],),  (header['CRPIX2'],)
+        rpix = (header['CRPIX1'],), (header['CRPIX2'],)
         rpix = data_wcs.wl_from_index(rpix)
     elif isinstance(data_wcs, WcsAstropy):
         # FIXME: The following lines should be the same with the previous
