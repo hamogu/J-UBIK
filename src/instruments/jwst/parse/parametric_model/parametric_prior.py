@@ -36,6 +36,8 @@ class UniformPriorConfig(ProbabilityConfig):
 class DeltaPriorConfig(ProbabilityConfig):
     distribution: str
     mean: float
+    _: Optional[float] = None  # This is not needed however it's convinient to
+    # comply with the signature of the other Configs.
     transformation: Optional[str] = None
 
 
