@@ -29,7 +29,7 @@ from jubik0.instruments.jwst.config_handler import load_yaml_and_save_info
 
 
 from charm_lensing.lens_system import build_lens_system
-from charm_lensing.physical_models.multifrequency_models.nifty_mf import build_nifty_mf_from_grid
+# from charm_lensing.physical_models.multifrequency_models.nifty_mf import build_nifty_mf_from_grid
 
 from jubik0.instruments.jwst.parse.grid import yaml_to_grid_model
 from jubik0.instruments.jwst.parse.jwst_psf import (
@@ -82,23 +82,23 @@ coordiantes_correction_config = yaml_to_coordinates_correction_config(
 rotation_and_shift_algorithm_config = yaml_to_rotation_and_shift_algorithm_config(
     cfg['telescope']['rotation_and_shift'])
 
-# # insert_ubik_energy_in_lensing(cfg, zsource=4.2)
-# insert_spaces_in_lensing_new(cfg['sky'])
-# lens_system = build_lens_system(cfg['sky'])
-# if cfg['nonparametric_lens']:
-#     sky_model = lens_system.get_forward_model_full()
-#     parametric_flag = False
-# else:
-#     sky_model = lens_system.get_forward_model_parametric()
-#     parametric_flag = True
+# insert_ubik_energy_in_lensing(cfg, zsource=4.2)
+insert_spaces_in_lensing_new(cfg['sky'])
+lens_system = build_lens_system(cfg['sky'])
+if cfg['nonparametric_lens']:
+    sky_model = lens_system.get_forward_model_full()
+    parametric_flag = False
+else:
+    sky_model = lens_system.get_forward_model_parametric()
+    parametric_flag = True
 
-# For testing
-sky_model = build_nifty_mf_from_grid(
-    grid,
-    'test',
-    cfg['sky']['model']['source']['light']['multifrequency']['nifty_mf'],
-    reference_bin=grid_model.color_reference_bin,
-)
+# # For testing
+# sky_model = build_nifty_mf_from_grid(
+#     grid,
+#     'test',
+#     cfg['sky']['model']['source']['light']['multifrequency']['nifty_mf'],
+#     reference_bin=grid_model.color_reference_bin,
+# )
 
 
 named_color_ranges = {}
