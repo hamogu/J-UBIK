@@ -184,15 +184,6 @@ for fltname, flt in cfg['files']['filter'].items():
             jwst_response, domain=jft.Vector(jwst_response.domain))
         likelihoods.append(likelihood)
 
-        likelihood = connect_likelihood_to_model(
-            likelihood, sky_model_with_keys)
-        x = likelihood.init(random.PRNGKey(42))
-        sky = sky_model_with_keys(x)
-        y = sky | x.tree
-        jwst_response(y)
-
-        exit()
-
 likelihood = reduce(lambda x, y: x+y, likelihoods)
 likelihood = connect_likelihood_to_model(likelihood, sky_model_with_keys)
 

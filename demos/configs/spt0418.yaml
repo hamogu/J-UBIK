@@ -1,4 +1,4 @@
-cpu: False
+cpu: True
 prior_samples: False
 plot_results: True
 nonparametric_lens: False
@@ -239,7 +239,7 @@ telescope:
       rotation_unit: deg
       shift_unit: arcsec
       default:
-        rotation: ['normal', 0, 1.0e-1]
+        rotation: ['normal', 0, 1.0e-3]  # With great power comes great responsibility !!
         shift: ['normal', 0, 1.0e-1]  # pixel units
       f356w:
         0: 
@@ -252,7 +252,7 @@ telescope:
 
 files:
   # res_dir: './results/jwst_lens/filter_consistency_test/f1500w_single_01'
-  res_dir: './results/jwst_lens/lens_light_tests/f356w_03_old_lenscharm_nifty'
+  res_dir: './results/jwst_lens/lens_light_tests/f356w_04_prior_changed'
 
   pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
 
@@ -335,7 +335,7 @@ files:
 
 minimization:
     key: 20112024
-    resume: False
+    resume: True
     n_total_iterations: 20
     pretraining_steps: Null
 
