@@ -134,9 +134,6 @@ def build_jwst_response(
         data_dvol: Unit, the volume of a data pixel
         data_wcs: WcsBase,
         data_model_type: str,
-        kwargs_linear: dict, (order, sky_as_brightness, mode)
-        kwargs_nufft: dict, (sky_as_brightness)
-        kwargs_sparse: dict, (extend_factor, to_bottom_left)
         world_extrema: Tuple[SkyCoord]
 
     shift_and_rotation_correction: Optional[CoordiantesCorrectionPriorConfig]
@@ -180,16 +177,8 @@ def build_jwst_response(
         world_extrema=world_extrema,
         data_grid_dvol=rotation_and_shift_kwargs['data_dvol'],
         data_grid_wcs=data_wcs,
-        model_type=rotation_and_shift_kwargs['data_model_type'],
+        algorithm_config=rotation_and_shift_kwargs['algorithm_config'],
         subsample=data_subsample,
-        kwargs=dict(
-            linear=rotation_and_shift_kwargs.get(
-                'kwargs_linear', dict(order=1, sky_as_brightness=False)),
-            nufft=rotation_and_shift_kwargs.get(
-                'kwargs_nufft', dict(sky_as_brightness=False)),
-            sparse=rotation_and_shift_kwargs.get(
-                'kwargs_sparse', dict(extend_factor=1, to_bottom_left=True)),
-        ),
         coordinates=coordinates,
     )
 
@@ -205,10 +194,12 @@ def build_jwst_response(
 
     mask = build_mask(data_mask)
 
-    return JwstResponse(sky_domain=sky_domain,
-                        rotation_and_shift=rotation_and_shift,
-                        psf=psf,
-                        integrate=integrate,
-                        transmission=transmission,
-                        zero_flux_model=zero_flux_model,
-                        mask=mask)
+    return JwstResponse(
+        sky_domain=sky_domain,
+        rotation_and_shift=rotation_and_shift,
+        psf=psf,
+        integrate=integrate,
+        transmission=transmission,
+        zero_flux_model=zero_flux_model,
+        mask=mask
+    )
