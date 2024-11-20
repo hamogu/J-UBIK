@@ -252,7 +252,7 @@ telescope:
 
 files:
   # res_dir: './results/jwst_lens/filter_consistency_test/f1500w_single_01'
-  res_dir: './results/jwst_lens/lens_light_tests/f356w_02_test'
+  res_dir: './results/jwst_lens/lens_light_tests/f356w_03_old_lenscharm_nifty'
 
   pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
 
