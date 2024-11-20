@@ -1,6 +1,7 @@
 from os.path import join
 from os import makedirs
 from typing import Union, Optional
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -10,10 +11,10 @@ from matplotlib.colors import Normalize, LogNorm
 
 import nifty8.re as jft
 
-from .mock_data.mock_evaluation import redchi2
-from .mock_data.mock_plotting import display_text
-from .rotation_and_shift.coordinates_correction import CoordinatesWithCorrection
-from .filter_projector import FilterProjector
+from ..mock_data.mock_evaluation import redchi2
+from ..mock_data.mock_plotting import display_text
+from ..rotation_and_shift.coordinates_correction import CoordinatesWithCorrection
+from ..filter_projector import FilterProjector
 
 from charm_lensing.lens_system import LensSystem
 
@@ -618,6 +619,21 @@ def build_plot_source(
             plt.show()
 
     return plot_source
+
+
+# @dataclass
+# class MultifrequencyPlottingKwargs:
+#     norm: Optional[Union[Normalize, LogNorm]] = Normalize
+#     norm_alpha: Optional[Union[Normalize, LogNorm]] = Normalize
+#     norm_nonparametric: Optional[Union[Normalize, LogNorm]] = Normalize
+#     max: Optional[float] = np.inf
+#     min: Optional[float] = -np.inf
+
+
+# @dataclass
+# class LensPlottingKwargs:
+#     source: MultifrequencyPlottingKwargs
+#     lens: MultifrequencyPlottingKwargs
 
 
 def build_plot_lens_system(
