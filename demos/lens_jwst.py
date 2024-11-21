@@ -1,23 +1,18 @@
 import yaml
 import argparse
 
-from functools import reduce
-
 import nifty8.re as jft
 from jax import random
 import jax.numpy as jnp
 
 import numpy as np
 from matplotlib.colors import LogNorm
-from astropy import units as u
 
 import jubik0 as ju
 
 from charm_lensing.lens_system import build_lens_system
 # from charm_lensing.physical_models.multifrequency_models.nifty_mf import build_nifty_mf_from_grid
 
-from jubik0.instruments.jwst.filter_projector import (
-    build_filter_projector_from_named_color_ranges)
 from jubik0.instruments.jwst.pretrain_model import pretrain_lens_system
 from jubik0.instruments.jwst.config_handler import load_yaml_and_save_info
 from jubik0.instruments.jwst.config_handler import (
@@ -29,10 +24,10 @@ from jubik0.instruments.jwst.plotting.plotting import get_plot, plot_prior
 
 from jubik0.instruments.jwst.parse.grid import yaml_to_grid_model
 from jubik0.instruments.jwst.grid import Grid
-from jubik0.instruments.jwst.jwst_data import JWST_FILTERS
-from jubik0.instruments.jwst.color import Color, ColorRange
 
 from sys import exit
+
+SKY_KEY = 'sky'
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -56,9 +51,7 @@ if cfg['no_interactive_plotting']:
     matplotlib.use('Agg')
 
 
-grid_model = yaml_to_grid_model(cfg['sky']['grid'])
-grid = Grid.from_grid_model(grid_model)
-
+grid = Grid.from_grid_model(yaml_to_grid_model(cfg['sky']['grid']))
 
 # insert_ubik_energy_in_lensing(cfg, zsource=4.2)
 insert_spaces_in_lensing_new(cfg['sky'])
@@ -69,6 +62,9 @@ if cfg['nonparametric_lens']:
 else:
     sky_model = lens_system.get_forward_model_parametric()
     parametric_flag = True
+sky_model = jft.Model(
+    jft.wrap_left(sky_model, SKY_KEY), domain=sky_model.domain)
+
 
 # # For testing
 # sky_model = build_nifty_mf_from_grid(
@@ -78,30 +74,14 @@ else:
 #     reference_bin=grid_model.color_reference_bin,
 # )
 
-
-named_color_ranges = {}
-for name, values in JWST_FILTERS.items():
-    pivot, bw, er, blue, red = values
-    named_color_ranges[name] = ColorRange(Color(red*u.um), Color(blue*u.um))
-
-filter_projector = build_filter_projector_from_named_color_ranges(
-    sky_domain=sky_model.target,
-    grid=grid,
-    named_color_ranges=named_color_ranges,
-    data_filter_names=cfg['files']['filter'].keys()
-)
-for fpt, fpc in filter_projector.target.items():
-    print(fpt, fpc)
+likelihood, filter_projector, data_dict = build_jwst_likelihoods(
+    cfg, grid, sky_model, sky_key=SKY_KEY)
 
 sky_model_with_keys = jft.Model(
     lambda x: filter_projector(sky_model(x)),
     init=sky_model.init
 )
 
-likelihoods, data_dict = build_jwst_likelihoods(
-    cfg, grid, filter_projector, sky_model_with_keys)
-
-likelihood = reduce(lambda x, y: x+y, likelihoods)
 likelihood = connect_likelihood_to_model(likelihood, sky_model_with_keys)
 
 plot_source, plot_residual, plot_color, plot_lens = get_plot(

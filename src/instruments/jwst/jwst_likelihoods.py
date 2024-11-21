@@ -3,8 +3,11 @@ from .config_handler import (get_grid_extension_from_config,)
 
 from .jwst_response import build_jwst_response
 from .jwst_data import (load_jwst_data_mask_std)
-from .filter_projector import FilterProjector
+from .jwst_data import JWST_FILTERS
+from .color import Color, ColorRange
 from .grid import Grid
+from .filter_projector import (
+    FilterProjector)
 
 # Parsing
 from .parse.jwst_psf import (yaml_to_psf_kernel_config)
@@ -15,19 +18,60 @@ from .parse.rotation_and_shift.rotation_and_shift import (
     yaml_to_rotation_and_shift_algorithm_config)
 from .jwst_psf import load_psf_kernel_from_config
 
-
 import jax.numpy as jnp
 import nifty8.re as jft
+
+# std
+from functools import reduce
+from astropy import units as u
+from typing import Union
+
+
+def build_filter_projector(
+    sky_model: jft.Model,
+    grid: Grid,
+    data_filter_names: list[str],
+    sky_key: str = 'sky',
+) -> FilterProjector:
+    named_color_ranges = {}
+    for name, values in JWST_FILTERS.items():
+        pivot, bw, er, blue, red = values
+        named_color_ranges[name] = ColorRange(
+            Color(red*u.um), Color(blue*u.um))
+
+    keys_and_colors = {}
+    for grid_color_range in grid.spectral:
+        for name in data_filter_names:
+            jwst_filter = named_color_ranges[name.upper()]
+            if grid_color_range.center in jwst_filter:
+                keys_and_colors[name] = grid_color_range
+
+    filter_projector = FilterProjector(
+        sky_domain=sky_model.target,
+        keys_and_colors=keys_and_colors,
+        sky_key=sky_key,
+    )
+
+    for fpt, fpc in filter_projector.target.items():
+        print(fpt, fpc)
+
+    return filter_projector
 
 
 def build_jwst_likelihoods(
     cfg: dict,
     grid: Grid,
-    filter_projector: FilterProjector,
-    sky_model_with_keys: jft.Model,
-):
-    '''Build the likelihoods according to the '''
+    sky_model: jft.Model,
+    # filter_projector: FilterProjector,
+    # sky_model_with_keys: jft.Model,
+    sky_key: str = 'sky',
+) -> Union[jft.Likelihood, FilterProjector, dict]:
+    '''Build the jwst likelihood according to the config and grid.'''
 
+    filter_projector = build_filter_projector(
+        sky_model, grid, cfg['files']['filter'].keys())
+
+    # Parsing
     zero_flux_prior_configs = yaml_to_zero_flux_prior_config(
         cfg['telescope']['zero_flux'])
     psf_kernel_configs = yaml_to_psf_kernel_config(cfg['telescope']['psf'])
@@ -61,8 +105,7 @@ def build_jwst_likelihoods(
             data_identifier = f'{fltname}_{ii}'
 
             jwst_response = build_jwst_response(
-                sky_domain={
-                    energy_name: sky_model_with_keys.target[energy_name]},
+                sky_domain={energy_name: filter_projector.target[energy_name]},
                 data_identifier=data_identifier,
                 data_subsample=data_subsample,
 
@@ -100,4 +143,5 @@ def build_jwst_likelihoods(
                 jwst_response, domain=jft.Vector(jwst_response.domain))
             likelihoods.append(likelihood)
 
-    return likelihoods, data_dict
+    likelihood = reduce(lambda x, y: x+y, likelihoods)
+    return likelihood, filter_projector, data_dict

@@ -4,11 +4,10 @@
 # Copyright(C) 2024 Max-Planck-Society
 
 # %
-from .grid import Grid
-
 import nifty8.re as jft
-from typing import Optional
+
 import numpy as np
+from typing import Optional, Union
 
 
 def sorted_keys_and_index(keys_and_colors: dict):
@@ -32,9 +31,10 @@ class FilterProjector(jft.Model):
 
     def __init__(
         self,
-        sky_domain: jft.ShapeWithDtype,
+        sky_domain: Union[jft.ShapeWithDtype, dict[str, jft.ShapeWithDtype]],
         keys_and_colors: dict,
-        sorted: Optional[bool] = True
+        sorted: Optional[bool] = True,
+        sky_key: Optional[str] = None,
     ):
         """
         Parameters
@@ -50,10 +50,18 @@ class FilterProjector(jft.Model):
             If `True` the indices will be ordered in ascending energy.
             Corresponding to the energies of the colors in the
             `keys_and_colors` dictionary.
+        sky_key : Optional[str]
+            If a sky_key is provided the sky-array gets unwrapped in the call.
         """
 
-        assert len(sky_domain.shape) == 3, ('FilterProjector expects a sky '
-                                            'with 3 dimensions.')
+        if sky_key is None:
+            assert len(sky_domain.shape) == 3, (
+                'FilterProjector expects a sky with 3 dimensions.')
+        else:
+            assert len(sky_domain[sky_key].shape) == 3, (
+                'FilterProjector expects a sky with 3 dimensions.')
+
+        self._sky_key = sky_key
 
         self.keys_and_colors = keys_and_colors
         if sorted:
@@ -81,23 +89,6 @@ class FilterProjector(jft.Model):
         return out_key
 
     def __call__(self, x):
+        if self._sky_key is not None:
+            x = x[self._sky_key]
         return {key: x[index] for key, index in self.keys_and_index.items()}
-
-
-def build_filter_projector_from_named_color_ranges(
-    sky_domain: jft.ShapeWithDtype,
-    grid: Grid,
-    named_color_ranges: dict,
-    data_filter_names: list[str],
-):
-    keys_and_colors = {}
-    for grid_color_range in grid.spectral:
-        for name in data_filter_names:
-            jwst_filter = named_color_ranges[name.upper()]
-            if grid_color_range.center in jwst_filter:
-                keys_and_colors[name] = grid_color_range
-
-    return FilterProjector(
-        sky_domain=sky_domain,
-        keys_and_colors=keys_and_colors,
-    )

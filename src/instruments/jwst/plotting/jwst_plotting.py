@@ -543,7 +543,7 @@ def build_plot_source(
     min_source = plotting_config.get('min_source', 1e-5)
     extent = plotting_config.get('extent', None)
 
-    freq_len = filter_projector.domain.shape[0]
+    freq_len = source_light_model.target.shape[0]
     xlen = 3
     ylen = 1 + int(np.ceil(freq_len/xlen))
 
