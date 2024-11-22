@@ -146,10 +146,52 @@ def _determine_xpos(dkey: str):
     return 3 + index
 
 
-def _determine_ypos(dkey: str, filter_projector: FilterProjector):
-    '''Determine the y position of the panel in the residual plot'''
+def _determine_ypos(
+    dkey: str,
+    filter_projector: FilterProjector,
+    ylen_offset: int,
+) -> int:
+    '''Determine the y position of the panel in the residual plot.
+
+    Parameters
+    ----------
+    dkey: str
+        The data_key which will determine the energy bin and hence the position
+        on the panel grid.
+    filter_projector: FilterProjector
+        The filter_projector of the reconstruction.
+    ylen_offset: int
+        An offset which corresponds to the bins not considered in determining
+        the ypos of the panels. I.e. the sky can have more bins than the ones
+        plotted in the panels, the ylen_offset corrects for this.
+
+    Returns
+    -------
+    ypos: int
+        The y-position on the panel grid.
+    '''
     ekey = dkey.split('_')[0]
-    return filter_projector.keys_and_index[ekey]
+    return filter_projector.keys_and_index[ekey] - ylen_offset
+
+
+@dataclass
+class FieldPlottingConfig:
+    min: float = 5.0e-4
+    max: float = np.inf
+    norm: callable = Normalize
+
+
+@dataclass
+class ResidualPlottingConfig:
+    sky: FieldPlottingConfig = FieldPlottingConfig()
+    data: FieldPlottingConfig = FieldPlottingConfig()
+
+    std_relative: bool = True
+    display_pointing: bool = True
+    display_chi2: bool = True
+    fileformat: str = 'png'
+    xmax_residuals: int = np.inf
+    ylen_offset: int = 0
 
 
 def build_plot_sky_residuals(
@@ -159,7 +201,7 @@ def build_plot_sky_residuals(
     sky_model_with_key: jft.Model,
     small_sky_model: jft.Model,
     overwrite_model: Optional[tuple[tuple[int], str, jft.Model]] = None,
-    plotting_config: dict = {},
+    plotting_config: ResidualPlottingConfig = ResidualPlottingConfig(),
 ):
     '''
     overwrite_model:
@@ -171,19 +213,16 @@ def build_plot_sky_residuals(
     residual_directory = join(results_directory, 'residuals')
     makedirs(residual_directory, exist_ok=True)
 
-    norm = plotting_config.get('norm', Normalize)
-    display_pointing = plotting_config.get('display_pointing', True)
-    display_chi2 = plotting_config.get('display_chi2', True)
-    std_relative = plotting_config.get('std_relative', True)
-    fileformat = plotting_config.get('fileformat', 'png')
-    xmax_residuals = plotting_config.get('xmax_residuals', np.inf)
-    if xmax_residuals is None:
-        xmax_residuals = np.inf
+    display_pointing = plotting_config.display_pointing
+    display_chi2 = plotting_config.display_chi2
+    std_relative = plotting_config.std_relative
+    fileformat = plotting_config.fileformat
+    xmax_residuals = plotting_config.xmax_residuals
 
-    sky_min = plotting_config.get('sky_min', 5e-4)
+    norm = plotting_config.sky.norm
+    sky_min = plotting_config.sky.min
 
-    residual_plotting_config = plotting_config.get(
-        'data_config', dict(min=5e-4, norm=Normalize))
+    residual_plotting_config = plotting_config.data
 
     ylen = len(sky_model_with_key.target)
     xlen = 3 + determine_xlen_residuals(data_dict, xmax_residuals)
@@ -206,7 +245,8 @@ def build_plot_sky_residuals(
         for dkey, data in data_dict.items():
 
             xpos_residual = _determine_xpos(dkey)
-            ypos = _determine_ypos(dkey, filter_projector)
+            ypos = _determine_ypos(
+                dkey, filter_projector, plotting_config.ylen_offset)
             if xpos_residual > xlen - 1:
                 continue
 
@@ -406,27 +446,31 @@ def _plot_data_data_model_residuals(
     data: ArrayLike,
     data_model: ArrayLike,
     std: ArrayLike,
-    plotting_config: dict = {}
+    plotting_config: FieldPlottingConfig
 ):
-    '''plotting_config:
-        - min
-        - norm
+    '''Plot three panels (data, model, data-model).
+
+    Parameters
+    ----------
+
     '''
 
-    min = plotting_config.get('min', 5e-4)
-    norm = plotting_config.get('norm', Normalize)
+    min = plotting_config.min
+    max = plotting_config.max
+    norm = plotting_config.norm
 
-    max_d, min_d = np.nanmax(data), np.max((np.nanmin(data), min))
+    max_d = np.min((np.nanmax(data), max))
+    min_d = np.max((np.nanmin(data), min))
 
     axes[0].set_title(f'Data {data_key}')
     axes[1].set_title('Data model')
     axes[2].set_title('Data - Data model')
-    ims[0] = axes[0].imshow(data, origin='lower',
-                            norm=norm(vmin=min_d, vmax=max_d))
-    ims[1] = axes[1].imshow(data_model, origin='lower',
-                            norm=norm(vmin=min_d, vmax=max_d))
-    ims[2] = axes[2].imshow((data-data_model)/std, origin='lower',
-                            vmin=-3, vmax=3, cmap='RdBu_r')
+    ims[0] = axes[0].imshow(
+        data, origin='lower', norm=norm(vmin=min_d, vmax=max_d))
+    ims[1] = axes[1].imshow(
+        data_model, origin='lower', norm=norm(vmin=min_d, vmax=max_d))
+    ims[2] = axes[2].imshow(
+        (data-data_model)/std, origin='lower', vmin=-3, vmax=3, cmap='RdBu_r')
 
     return ims
 
@@ -628,21 +672,6 @@ def build_plot_source(
             plt.show()
 
     return plot_source
-
-
-# @dataclass
-# class MultifrequencyPlottingKwargs:
-#     norm: Optional[Union[Normalize, LogNorm]] = Normalize
-#     norm_alpha: Optional[Union[Normalize, LogNorm]] = Normalize
-#     norm_nonparametric: Optional[Union[Normalize, LogNorm]] = Normalize
-#     max: Optional[float] = np.inf
-#     min: Optional[float] = -np.inf
-
-
-# @dataclass
-# class LensPlottingKwargs:
-#     source: MultifrequencyPlottingKwargs
-#     lens: MultifrequencyPlottingKwargs
 
 
 def build_plot_lens_system(

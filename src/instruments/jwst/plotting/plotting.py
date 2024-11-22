@@ -4,6 +4,8 @@ from .jwst_plotting import (
     build_color_components_plotting,
     build_plot_sky_residuals,
     build_plot_source,
+    FieldPlottingConfig,
+    ResidualPlottingConfig,
 )
 from ..filter_projector import FilterProjector
 
@@ -22,7 +24,8 @@ def get_plot(
     sky_model_with_keys: jft.Model,
     cfg: dict,
     parametric_flag: bool,
-    sky_key: str = 'sky'
+    sky_key: str = 'sky',
+    residual_ylen_offset: int = 0,
 ):
     if isinstance(filter_projector.domain, jft.ShapeWithDtype):
         source_light_model = lens_system.source_plane_model.light_model
@@ -50,19 +53,22 @@ def get_plot(
         source_light_alpha_nonparametric=(sl_alpha, sl_nonpar),
     )
 
+    residual_plotting_config = ResidualPlottingConfig(
+        sky=FieldPlottingConfig(norm=LogNorm),
+        data=FieldPlottingConfig(norm=LogNorm),
+        display_pointing=False,
+        xmax_residuals=cfg.get('max_residuals', 4),
+        ylen_offset=residual_ylen_offset,
+    )
     plot_residual = build_plot_sky_residuals(
         results_directory=results_directory,
         filter_projector=filter_projector,
         data_dict=data_dict,
         sky_model_with_key=sky_model_with_keys,
         small_sky_model=sky_model_new,
-        plotting_config=dict(
-            norm=LogNorm,
-            data_config=dict(norm=LogNorm),
-            display_pointing=False,
-            xmax_residuals=cfg.get('max_residuals', 4),
-        ),
+        plotting_config=residual_plotting_config,
     )
+
     plot_color = build_color_components_plotting(
         lens_system.source_plane_model.light_model.nonparametric(), results_directory, substring='source')
 
@@ -97,6 +103,7 @@ def plot_prior(
     data_dict: dict,
     parametric_flag: bool,
     sky_key: str = 'sky',
+    residual_ylen_offset: int = 0,
 ):
     test_key, _ = random.split(random.PRNGKey(42), 2)
 
@@ -116,19 +123,20 @@ def plot_prior(
                 yield kk, vv
 
     prior_dict = {kk: vv for kk, vv in filter_data(data_dict)}
+    residual_plotting_config = ResidualPlottingConfig(
+        sky=FieldPlottingConfig(norm=LogNorm),
+        data=FieldPlottingConfig(norm=LogNorm),
+        display_pointing=False,
+        xmax_residuals=cfg.get('max_residuals', 4),
+        ylen_offset=residual_ylen_offset,
+    )
     plot_prior_residuals = build_plot_sky_residuals(
         results_directory='',
         data_dict=prior_dict,
         filter_projector=filter_projector,
         sky_model_with_key=sky_model_with_keys,
         small_sky_model=sky_model_new,
-        plotting_config=dict(
-            norm=LogNorm,
-            data_config=dict(norm=LogNorm),
-            display_chi2=False,
-            display_pointing=False,
-            std_relative=False,
-        )
+        plotting_config=residual_plotting_config,
     )
 
     nsamples = cfg.get('prior_samples') if cfg.get('prior_samples') else 3
