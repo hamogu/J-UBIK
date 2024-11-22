@@ -15,6 +15,7 @@ from ..mock_data.mock_evaluation import redchi2
 from ..mock_data.mock_plotting import display_text
 from ..rotation_and_shift.coordinates_correction import CoordinatesWithCorrection
 from ..filter_projector import FilterProjector
+from ..grid import Grid
 
 from charm_lensing.lens_system import LensSystem
 
@@ -558,7 +559,7 @@ def build_get_values(
 def build_plot_source(
     results_directory: str,
     plotting_config: dict,
-    filter_projector: FilterProjector,
+    grid: Grid,
     source_light_model,
     source_light_alpha,
     source_light_parametric,
@@ -591,7 +592,7 @@ def build_plot_source(
     min_source = plotting_config.get('min_source', 1e-5)
     extent = plotting_config.get('extent', None)
 
-    freq_len = len(filter_projector.keys_and_colors)
+    freq_len = len(grid.spectral)
     xlen = 3
     ylen = 1 + int(np.ceil(freq_len/xlen))
 
@@ -633,23 +634,18 @@ def build_plot_source(
         axes[0, 1].set_title("Nonparametric correction at I0")
         axes[0, 2].set_title("Spectral index")
         ims[0, 0] = axes[0, 0].imshow(
-            slpar,
-            origin='lower',
-            extent=extent,
-            norm=norm_source_parametric(vmin=min_source))
+            slpar, origin='lower', extent=extent, norm=norm_source_parametric(vmin=min_source))
         ims[0, 1] = axes[0, 1].imshow(
-            slnonpar,
-            origin='lower',
-            extent=extent, norm=norm_source_nonparametric())
+            slnonpar, origin='lower', extent=extent, norm=norm_source_nonparametric())
         ims[0, 2] = axes[0, 2].imshow(
             sla, origin='lower', extent=extent, norm=norm_source_alpha())
 
         axes = axes.flatten()
         ims = ims.flatten()
-        for ii, (fltname, fld) in enumerate(
-                filter_projector(source_light).items()):
+        for ii, (energy_range, fld) in enumerate(zip(grid.spectral.color_ranges, source_light)):
+            energy, energy_unit = energy_range.center.value, energy_range.center.unit
             ii += 3
-            axes[ii].set_title(f'{fltname}')
+            axes[ii].set_title(f'{energy} {energy_unit}')
             ims[ii] = axes[ii].imshow(
                 fld,
                 origin='lower',

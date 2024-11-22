@@ -8,6 +8,7 @@ from .jwst_plotting import (
     ResidualPlottingConfig,
 )
 from ..filter_projector import FilterProjector
+from ..grid import Grid
 
 import nifty8.re as jft
 
@@ -17,6 +18,7 @@ from matplotlib.colors import LogNorm
 
 def get_plot(
     results_directory: str,
+    grid: Grid,
     lens_system,
     filter_projector: FilterProjector,
     data_dict: dict,
@@ -28,13 +30,10 @@ def get_plot(
     residual_ylen_offset: int = 0,
 ):
     if isinstance(filter_projector.domain, jft.ShapeWithDtype):
-        source_light_model = lens_system.source_plane_model.light_model
         sky_model_new = sky_model
     else:
         sky_model_new = jft.Model(lambda x: sky_model(x)[sky_key],
                                   domain=sky_model.domain)
-        source_light_model = jft.wrap_left(
-            lens_system.source_plane_model.light_model, sky_key)
 
     ll_alpha, ll_nonpar, sl_alpha, sl_nonpar = get_alpha_nonpar(lens_system)
 
@@ -80,8 +79,8 @@ def get_plot(
             norm_source_nonparametric=LogNorm,
             extent=lens_system.source_plane_model.space.extend().extent,
         ),
-        filter_projector=filter_projector,
-        source_light_model=source_light_model,
+        grid=grid,
+        source_light_model=lens_system.source_plane_model.light_model,
         source_light_alpha=sl_alpha,
         source_light_parametric=lens_system.source_plane_model.light_model.parametric(),
         source_light_nonparametric=sl_nonpar,
