@@ -1,5 +1,5 @@
 cpu: False
-prior_samples: False
+prior_samples: True
 plot_results: True
 nonparametric_lens: False
 max_residuals: 4 # 4 for big run

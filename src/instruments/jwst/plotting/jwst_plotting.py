@@ -61,7 +61,10 @@ def get_position_or_samples_of_model(
             [model(si) for si in position_or_samples])
     else:
         mean = model(position_or_samples)
-        std = np.full(mean.shape, 0.)
+        if isinstance(mean, dict):
+            std = {k: np.full(v.shape, 0) for k, v in mean.items()}
+        else:
+            std = np.full(mean.shape, 0.)
 
     return mean, std
 
@@ -257,6 +260,7 @@ def build_plot_sky_residuals(
             small_sky_model)
         ma, mi = jft.max(small_mean), jft.min(small_mean)
         ma, mi = np.max((sky_min, ma)), np.max((sky_min, mi))
+
         # FIXME: This should be handled by a source with shape 3
         if len(small_mean.shape) == 2:
             small_mean = small_mean[None]
@@ -543,7 +547,7 @@ def build_plot_source(
     min_source = plotting_config.get('min_source', 1e-5)
     extent = plotting_config.get('extent', None)
 
-    freq_len = source_light_model.target.shape[0]
+    freq_len = len(filter_projector.keys_and_colors)
     xlen = 3
     ylen = 1 + int(np.ceil(freq_len/xlen))
 
@@ -571,6 +575,11 @@ def build_plot_source(
             slnonpar = slight_nonparametric(position_or_samples)
             slpar = slight_parametric(position_or_samples)
             source_light = source_light_model(position_or_samples)
+
+        source_light_min = next(iter(source_light.values())).min() if isinstance(
+            source_light, dict) else source_light.min()
+        source_light_max = next(iter(source_light.values())).max() if isinstance(
+            source_light, dict) else source_light.max()
 
         fig, axes = plt.subplots(ylen, xlen, figsize=(3*xlen, 3*ylen), dpi=300)
         ims = np.zeros_like(axes)
@@ -602,8 +611,8 @@ def build_plot_source(
                 origin='lower',
                 extent=extent,
                 norm=norm_source(
-                    vmin=np.max((min_source, source_light.min())),
-                    vmax=source_light.max()))
+                    vmin=np.max((min_source, source_light_min)),
+                    vmax=source_light_max))
 
         for ax, im in zip(axes.flatten(), ims.flatten()):
             if not isinstance(im, int):

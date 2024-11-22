@@ -53,7 +53,7 @@ def config_transform(config: dict):
 
 
 def get_grid_extension_from_config(
-    config: dict,
+    telescope_config: dict,
     reconstruction_grid: Grid,
 ):
     '''Load the grid extension for the reconstruction grid. The reconstruction
@@ -62,9 +62,9 @@ def get_grid_extension_from_config(
 
     Parameters
     ----------
-    config: dict
-        The config dict holds psf_arcsec_extension, which holds the extension
-        in units of arcsec.
+    telescope_config: dict
+        The telescope_config dict holds psf_arcsec_extension, which holds the
+        extension in units of arcsec.
     reconstruction_grid: Grid
         The grid underlying the reconstruction.
 
@@ -75,8 +75,7 @@ def get_grid_extension_from_config(
         reconstruction will be zero padded.
     '''
 
-    psf_arcsec_extension = config['telescope']['psf'].get(
-        'psf_arcsec_extension')
+    psf_arcsec_extension = telescope_config['psf'].get('psf_arcsec_extension')
     if psf_arcsec_extension is None:
         raise ValueError('Need to provide either `psf_arcsec_extension`.')
 

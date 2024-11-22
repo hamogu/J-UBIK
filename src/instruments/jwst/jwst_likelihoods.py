@@ -40,15 +40,18 @@ def build_filter_projector(
             Color(red*u.um), Color(blue*u.um))
 
     keys_and_colors = {}
-    for grid_color_range in grid.spectral:
+    keys_and_index = {}
+    for color_index, grid_color_range in enumerate(grid.spectral):
         for name in data_filter_names:
             jwst_filter = named_color_ranges[name.upper()]
             if grid_color_range.center in jwst_filter:
                 keys_and_colors[name] = grid_color_range
+                keys_and_index[name] = color_index
 
     filter_projector = FilterProjector(
         sky_domain=sky_model.target,
         keys_and_colors=keys_and_colors,
+        keys_and_index=keys_and_index,
         sky_key=sky_key,
     )
 
@@ -62,38 +65,39 @@ def build_jwst_likelihoods(
     cfg: dict,
     grid: Grid,
     sky_model: jft.Model,
-    # filter_projector: FilterProjector,
-    # sky_model_with_keys: jft.Model,
     sky_key: str = 'sky',
+    files_key: str = 'files',
+    telescope_key: str = 'telescope',
 ) -> Union[jft.Likelihood, FilterProjector, dict]:
     '''Build the jwst likelihood according to the config and grid.'''
 
     filter_projector = build_filter_projector(
-        sky_model, grid, cfg['files']['filter'].keys())
+        sky_model, grid, cfg[files_key]['filter'].keys())
 
     # Parsing
     zero_flux_prior_configs = yaml_to_zero_flux_prior_config(
-        cfg['telescope']['zero_flux'])
-    psf_kernel_configs = yaml_to_psf_kernel_config(cfg['telescope']['psf'])
+        cfg[telescope_key]['zero_flux'])
+    psf_kernel_configs = yaml_to_psf_kernel_config(cfg[telescope_key]['psf'])
     coordiantes_correction_config = yaml_to_coordinates_correction_config(
-        cfg['telescope']['rotation_and_shift']['correction_priors'])
+        cfg[telescope_key]['rotation_and_shift']['correction_priors'])
     rotation_and_shift_algorithm_config = yaml_to_rotation_and_shift_algorithm_config(
-        cfg['telescope']['rotation_and_shift'])
+        cfg[telescope_key]['rotation_and_shift'])
 
     data_dict = {}
     likelihoods = []
-    for fltname, flt in cfg['files']['filter'].items():
+    for fltname, flt in cfg[files_key]['filter'].items():
         for ii, filepath in enumerate(flt):
             print(fltname, ii, filepath)
 
             # Loading data, std, and mask.
-            grid_extension = get_grid_extension_from_config(cfg, grid)
+            grid_extension = get_grid_extension_from_config(
+                cfg[telescope_key], grid)
             world_corners = grid.spatial.world_extrema(ext=grid_extension)
 
             jwst_data, data, mask, std = load_jwst_data_mask_std(
                 filepath, grid, world_corners)
 
-            data_subsample = cfg['telescope']['rotation_and_shift']['subsample']
+            data_subsample = cfg[telescope_key]['rotation_and_shift']['subsample']
             psf_kernel = load_psf_kernel_from_config(
                 jwst_data=jwst_data,
                 pointing_center=grid.spatial.center,

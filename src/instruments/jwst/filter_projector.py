@@ -10,12 +10,10 @@ import numpy as np
 from typing import Optional, Union
 
 
-def sorted_keys_and_index(keys_and_colors: dict):
+def _sorted_keys_and_index(keys_and_colors: dict):
     keys, colors = keys_and_colors.keys(), keys_and_colors.values()
     sorted_indices = np.argsort([c.center.energy.value for c in colors])
-    return {
-        key: index for key, index in zip(keys, sorted_indices)
-    }
+    return {key: index for key, index in zip(keys, sorted_indices)}
 
 
 class FilterProjector(jft.Model):
@@ -33,7 +31,7 @@ class FilterProjector(jft.Model):
         self,
         sky_domain: Union[jft.ShapeWithDtype, dict[str, jft.ShapeWithDtype]],
         keys_and_colors: dict,
-        sorted: Optional[bool] = True,
+        keys_and_index: Optional[dict],
         sky_key: Optional[str] = None,
     ):
         """
@@ -46,14 +44,12 @@ class FilterProjector(jft.Model):
             A dictionary where the keys are filter names (or keys) and the
             values are lists of colors associated with each filter.
             This defines how inputs will be mapped to the respective filters.
-        sorted : bool
-            If `True` the indices will be ordered in ascending energy.
-            Corresponding to the energies of the colors in the
-            `keys_and_colors` dictionary.
+        keys_and_index : Optional[dict]
+            A dictionary holding the filter names as keys and the associated
+            index in the reconstruction grid.
         sky_key : Optional[str]
             If a sky_key is provided the sky-array gets unwrapped in the call.
         """
-
         if sky_key is None:
             assert len(sky_domain.shape) == 3, (
                 'FilterProjector expects a sky with 3 dimensions.')
@@ -62,14 +58,11 @@ class FilterProjector(jft.Model):
                 'FilterProjector expects a sky with 3 dimensions.')
 
         self._sky_key = sky_key
-
         self.keys_and_colors = keys_and_colors
-        if sorted:
-            self.keys_and_index = sorted_keys_and_index(keys_and_colors)
-        else:
-            self.keys_and_index = {
-                key: index for index, key in enumerate(keys_and_colors.keys())
-            }
+        self.keys_and_index = keys_and_index
+        if keys_and_index is None:
+            self.keys_and_index = _sorted_keys_and_index(keys_and_colors)
+
         super().__init__(domain=sky_domain)
 
     def get_key(self, color):

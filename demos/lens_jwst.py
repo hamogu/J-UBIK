@@ -62,10 +62,8 @@ if cfg['nonparametric_lens']:
 else:
     sky_model = lens_system.get_forward_model_parametric()
     parametric_flag = True
-sky_model = jft.Model(
-    jft.wrap_left(sky_model, SKY_KEY), domain=sky_model.domain)
-
-
+sky_model = jft.Model(jft.wrap_left(sky_model, SKY_KEY),
+                      domain=sky_model.domain)
 # # For testing
 # sky_model = build_nifty_mf_from_grid(
 #     grid,
@@ -73,6 +71,7 @@ sky_model = jft.Model(
 #     cfg['sky']['model']['source']['light']['multifrequency']['nifty_mf'],
 #     reference_bin=grid_model.color_reference_bin,
 # )
+
 
 likelihood, filter_projector, data_dict = build_jwst_likelihoods(
     cfg, grid, sky_model, sky_key=SKY_KEY)
@@ -86,11 +85,13 @@ likelihood = connect_likelihood_to_model(likelihood, sky_model_with_keys)
 
 plot_source, plot_residual, plot_color, plot_lens = get_plot(
     results_directory, lens_system, filter_projector, data_dict, sky_model,
-    sky_model_with_keys, cfg, parametric_flag)
+    sky_model_with_keys, cfg, parametric_flag, sky_key=SKY_KEY)
 if cfg.get('prior_samples'):
     plot_prior(
         cfg, likelihood, filter_projector, sky_model, sky_model_with_keys,
-        plot_source, plot_lens, plot_color, data_dict, parametric_flag)
+        plot_source, plot_lens, plot_color, data_dict, parametric_flag,
+        sky_key=SKY_KEY,
+    )
 
 
 def plot(samples: jft.Samples, state: jft.OptimizeVIState):

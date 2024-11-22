@@ -21,8 +21,18 @@ def get_plot(
     sky_model: jft.Model,
     sky_model_with_keys: jft.Model,
     cfg: dict,
-    parametric_flag: bool
+    parametric_flag: bool,
+    sky_key: str = 'sky'
 ):
+    if isinstance(filter_projector.domain, jft.ShapeWithDtype):
+        source_light_model = lens_system.source_plane_model.light_model
+        sky_model_new = sky_model
+    else:
+        sky_model_new = jft.Model(lambda x: sky_model(x)[sky_key],
+                                  domain=sky_model.domain)
+        source_light_model = jft.wrap_left(
+            lens_system.source_plane_model.light_model, sky_key)
+
     ll_alpha, ll_nonpar, sl_alpha, sl_nonpar = get_alpha_nonpar(lens_system)
 
     plot_lens = build_plot_lens_system(
@@ -45,7 +55,7 @@ def get_plot(
         filter_projector=filter_projector,
         data_dict=data_dict,
         sky_model_with_key=sky_model_with_keys,
-        small_sky_model=sky_model,
+        small_sky_model=sky_model_new,
         plotting_config=dict(
             norm=LogNorm,
             data_config=dict(norm=LogNorm),
@@ -65,7 +75,7 @@ def get_plot(
             extent=lens_system.source_plane_model.space.extend().extent,
         ),
         filter_projector=filter_projector,
-        source_light_model=lens_system.source_plane_model.light_model,
+        source_light_model=source_light_model,
         source_light_alpha=sl_alpha,
         source_light_parametric=lens_system.source_plane_model.light_model.parametric(),
         source_light_nonparametric=sl_nonpar,
@@ -86,8 +96,15 @@ def plot_prior(
     plot_color: callable,
     data_dict: dict,
     parametric_flag: bool,
+    sky_key: str = 'sky',
 ):
     test_key, _ = random.split(random.PRNGKey(42), 2)
+
+    if not isinstance(filter_projector.domain, jft.ShapeWithDtype):
+        sky_model_new = jft.Model(lambda x: sky_model(x)[sky_key],
+                                  domain=sky_model.domain)
+    else:
+        sky_model_new = sky_model
 
     def filter_data(datas: dict):
         filters = list()
@@ -99,12 +116,12 @@ def plot_prior(
                 yield kk, vv
 
     prior_dict = {kk: vv for kk, vv in filter_data(data_dict)}
-    plot_prior = build_plot_sky_residuals(
+    plot_prior_residuals = build_plot_sky_residuals(
         results_directory='',
         data_dict=prior_dict,
         filter_projector=filter_projector,
         sky_model_with_key=sky_model_with_keys,
-        small_sky_model=sky_model,
+        small_sky_model=sky_model_new,
         plotting_config=dict(
             norm=LogNorm,
             data_config=dict(norm=LogNorm),
@@ -121,7 +138,7 @@ def plot_prior(
         while isinstance(position, jft.Vector):
             position = position.tree
 
+        plot_prior_residuals(position)
         plot_source(position)
-        plot_prior(position)
         plot_color(position)
         plot_lens(position, None, parametric=parametric_flag)
