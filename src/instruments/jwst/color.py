@@ -67,6 +67,15 @@ class Color(u.Quantity):
         self.frequency = (energy / const.h).to(u.Hz)
         self.wavelength = (const.c / self.frequency).to(u.m)
 
+    def to_unit(self, unit: u.Unit):
+        if unit.physical_type == 'length':
+            value = self.wavelength
+        elif unit.physical_type == 'frequency':
+            value = self.frequency
+        elif unit.physical_type == 'energy':
+            value = self.energy
+        return value.to(unit)
+
     def redshift(self, z: float):
         """
         Corresponding color at redshift z.

@@ -480,8 +480,8 @@ def get_alpha_nonpar(lens_system: LensSystem):
     ll_nonpar, ll_alpha, sl_nonpar, sl_alpha = [
         lambda _: np.zeros((12, 12)) for ii in range(4)]
 
-    llm, slm = (lens_system.lens_plane_model.light_model.nonparametric(),
-                lens_system.source_plane_model.light_model.nonparametric())
+    llm, slm = (lens_system.lens_plane_model.light_model.nonparametric,
+                lens_system.source_plane_model.light_model.nonparametric)
 
     if hasattr(llm, 'alpha'):
         ll_shape = lens_system.lens_plane_model.space.shape
@@ -509,8 +509,7 @@ def get_alpha_nonpar(lens_system: LensSystem):
             def sl_nonpar(_): return np.zeros((12, 12))
 
     try:
-        ll_nonpar = lens_system.lens_plane_model.light_model.parametric(
-        )[0].nonparametric()
+        ll_nonpar = lens_system.lens_plane_model.light_model.parametric[0].nonparametric
     except:
         pass
 
@@ -524,7 +523,7 @@ def build_get_values(
     source_model = lens_system.source_plane_model.light_model
 
     if parametric:
-        convergence_model = lens_system.lens_plane_model.convergence_model.parametric()
+        convergence_model = lens_system.lens_plane_model.convergence_model.parametric
         def convergence_nonpar_model(_): return np.zeros((12, 12))
 
         sky_model = lens_system.get_forward_model_parametric()
@@ -533,7 +532,7 @@ def build_get_values(
 
     else:
         convergence_model = lens_system.lens_plane_model.convergence_model
-        convergence_nonpar_model = lens_system.lens_plane_model.convergence_model.nonparametric()
+        convergence_nonpar_model = lens_system.lens_plane_model.convergence_model.nonparametric
 
         sky_model = lens_system.get_forward_model_full()
         lensed_light_model = lens_system.get_forward_model_full(
