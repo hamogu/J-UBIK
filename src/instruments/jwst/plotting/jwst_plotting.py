@@ -1,7 +1,7 @@
 from os.path import join
 from os import makedirs
 from typing import Union, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -183,8 +183,8 @@ class FieldPlottingConfig:
 
 @dataclass
 class ResidualPlottingConfig:
-    sky: FieldPlottingConfig = FieldPlottingConfig()
-    data: FieldPlottingConfig = FieldPlottingConfig()
+    sky: FieldPlottingConfig = field(default_factory=FieldPlottingConfig)
+    data: FieldPlottingConfig = field(default_factory=FieldPlottingConfig)
 
     std_relative: bool = True
     display_pointing: bool = True
