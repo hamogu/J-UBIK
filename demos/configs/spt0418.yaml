@@ -92,7 +92,7 @@ sky:
             #   cutoff: [0.1, 0.01]       # lognormal
             #   loglogslope: [-4.0, 0.1]  # normal
             spectral_index:
-              mean: [-0.5, 1.0]         # normal
+              mean: [-1.5, 0.5]         # normal
               fluctuations: [0.5, 0.1]  # lognormal 
             spectral_deviations:
               process: 'wiener'
@@ -252,7 +252,7 @@ telescope:
 
 files:
   # res_dir: './results/jwst_lens/filter_consistency_test/f1500w_single_01'
-  res_dir: './results/jwst_lens/lens_light_tests/f356w_05_test'
+  res_dir: './results/jwst_lens/lens_light_tests/f356w_06_test'
 
   pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
 

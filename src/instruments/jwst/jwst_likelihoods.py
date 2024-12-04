@@ -24,7 +24,7 @@ import nifty8.re as jft
 # std
 from functools import reduce
 from astropy import units as u
-from typing import Union
+from typing import Union, Optional
 
 
 def build_filter_projector(
@@ -68,6 +68,7 @@ def build_jwst_likelihoods(
     sky_key: str = 'sky',
     files_key: str = 'files',
     telescope_key: str = 'telescope',
+    sky_unit: Optional[u.Unit] = None,
 ) -> Union[jft.Likelihood, FilterProjector, dict]:
     '''Build the jwst likelihood according to the config and grid.'''
 
@@ -96,6 +97,8 @@ def build_jwst_likelihoods(
 
             jwst_data, data, mask, std = load_jwst_data_mask_std(
                 filepath, grid, world_corners)
+            if sky_unit is not None:
+                assert jwst_data.dm.meta.bunit_data == sky_unit
 
             data_subsample = cfg[telescope_key]['rotation_and_shift']['subsample']
             psf_kernel = load_psf_kernel_from_config(

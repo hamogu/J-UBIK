@@ -248,3 +248,46 @@ class WcsAstropy(WCS, WcsBase):
         distances = [d.to(unit).value for d in self.distances]
         halfside = np.array(self.shape)/2 * np.array(distances)
         return -halfside[0], halfside[0], -halfside[1], halfside[1]
+
+
+def WcsAstropy_from_wcs(wcs: WCS) -> WcsAstropy:
+    """
+    Get basic WCS information: center coordinates, field of view, and array shape.
+
+    Parameters:
+    -----------
+    wcs : astropy.wcs.WCS
+        The WCS object to analyze
+
+    Returns:
+    --------
+    center : SkyCoord
+        Center/reference pixel coordinates
+    fov : tuple[Quantity, Quantity]
+        Field of view in (width, height)
+    shape : list[int]
+        Shape of the array (nx, ny)
+    """
+    # Get array shape
+    nx, ny = wcs.array_shape
+
+    # Get center coordinate
+    center = SkyCoord(
+        wcs.wcs.crval[0], wcs.wcs.crval[1],
+        unit='deg', frame=wcs.wcs.radesys.lower())
+
+    # Calculate FOV
+    corners_pix = np.array([[0, 0], [nx-1, 0], [nx-1, ny-1], [0, ny-1]])
+    corners_world = wcs.wcs_pix2world(corners_pix, 0)
+    corners = SkyCoord(corners_world, unit='deg',
+                       frame=wcs.wcs.radesys.lower())
+
+    # Calculate width (average of top and bottom)
+    width = (corners[0].separation(corners[1]) +
+             corners[3].separation(corners[2])) / 2
+
+    # Calculate height (average of left and right)
+    height = (corners[0].separation(corners[3]) +
+              corners[1].separation(corners[2])) / 2
+
+    return WcsAstropy(center, [nx, ny], (width, height))
