@@ -310,14 +310,18 @@ def build_plot_sky_residuals(
         for ii, filter_name in enumerate(sky_model_with_key.target.keys()):
             axes[ii, 0].set_title(f'Sky {filter_name}')
             ims[ii, 0] = axes[ii, 0].imshow(
-                small_mean[ii], origin='lower', norm=norm(vmax=ma, vmin=mi))
+                small_mean[ii + plotting_config.ylen_offset],
+                origin='lower',
+                norm=norm(vmax=ma, vmin=mi))
 
         for kk, (jj, filter_name) in zip(
                 range(ii+1, len(axes)),
                 enumerate(sky_model_with_key.target.keys())):
             axes[kk, 0].set_title(f'Sky {filter_name} std')
             ims[kk, 0] = axes[kk, 0].imshow(
-                small_std[jj], origin='lower', norm=norm(vmax=ma, vmin=mi))
+                small_std[jj + plotting_config.ylen_offset],
+                origin='lower',
+                norm=norm(vmax=ma, vmin=mi))
 
         if overwrite_model is not None:
             ii, jj = overwrite_model[0]
@@ -673,7 +677,7 @@ def build_plot_lens_system(
     results_directory: str,
     plotting_config: dict,
     lens_system,  # : LensSystem,
-    filter_projector: FilterProjector,
+    grid: Grid,
     lens_light_alpha_nonparametric,
     source_light_alpha_nonparametric,
 ):
@@ -749,7 +753,7 @@ def build_plot_lens_system(
 
         fig, axes = plt.subplots(3, xlen, figsize=(3*xlen, 8), dpi=300)
         ims = np.zeros_like(axes)
-        filter_offset = 2
+        light_offset = 2
 
         # Plot lens light
         axes[0, 0].set_title("Lens light alpha")
@@ -773,21 +777,23 @@ def build_plot_lens_system(
         ims[2, 1] = axes[2, 1].imshow(
             convergence_nonpar, origin='lower', norm=norm_mass())
 
-        for ii, filter_name in enumerate(filter_projector.target.keys()):
-            axes[0, ii+filter_offset].set_title(f'Lens light {filter_name}')
-            ims[0, ii+filter_offset] = axes[0, ii+filter_offset].imshow(
+        for ii, energy_range in enumerate(grid.spectral.color_ranges):
+            energy, energy_unit = energy_range.center.value, energy_range.center.unit
+            ename = f'{energy} {energy_unit}'
+            axes[0, ii+light_offset].set_title(f'Lens light {ename}')
+            ims[0, ii+light_offset] = axes[0, ii+light_offset].imshow(
                 lens_light[ii], origin='lower', extent=lens_ext,
                 norm=norm_lens(vmin=np.max((min_lens, lens_light.min())),
                                vmax=lens_light.max()))
 
-            axes[1, ii+filter_offset].set_title(f'Source light {filter_name}')
-            ims[1, ii+filter_offset] = axes[1, ii+filter_offset].imshow(
+            axes[1, ii+light_offset].set_title(f'Source light {ename}')
+            ims[1, ii+light_offset] = axes[1, ii+light_offset].imshow(
                 source_light[ii], origin='lower', extent=source_ext,
                 norm=norm_source(vmin=np.max((min_source, source_light.min())),
                                  vmax=source_light.max()))
 
-            axes[2, ii+filter_offset].set_title(f'Lensed light {filter_name}')
-            ims[2, ii+filter_offset] = axes[2, ii+filter_offset].imshow(
+            axes[2, ii+light_offset].set_title(f'Lensed light {ename}')
+            ims[2, ii+light_offset] = axes[2, ii+light_offset].imshow(
                 lensed_light[ii], origin='lower', extent=lens_ext,
                 norm=norm_source(vmin=np.max((min_source, lensed_light.min())),
                                  vmax=lensed_light.max()))

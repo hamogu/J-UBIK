@@ -47,7 +47,7 @@ def get_plot(
             # norm_mass=LogNorm,
         ),
         lens_system=lens_system,
-        filter_projector=filter_projector,
+        grid=grid,
         lens_light_alpha_nonparametric=(ll_alpha, ll_nonpar),
         source_light_alpha_nonparametric=(sl_alpha, sl_nonpar),
     )
