@@ -12,6 +12,8 @@ from ..grid import Grid
 
 import nifty8.re as jft
 
+from charm_lensing.lens_system import LensSystem
+
 from jax import random
 from matplotlib.colors import LogNorm
 
@@ -19,7 +21,7 @@ from matplotlib.colors import LogNorm
 def get_plot(
     results_directory: str,
     grid: Grid,
-    lens_system,
+    lens_system: LensSystem,
     filter_projector: FilterProjector,
     data_dict: dict,
     sky_model: jft.Model,

@@ -18,6 +18,8 @@ from ..filter_projector import FilterProjector
 from ..grid import Grid
 
 from charm_lensing.lens_system import LensSystem
+from charm_lensing.physical_models.multifrequency_models.colormix_model import (
+    ColorMix, NonSymmetricColorMatrix)
 
 
 def find_closest_factors(number):
@@ -288,7 +290,7 @@ def build_plot_sky_residuals(
             else:
                 ims[ypos, xpos_residual] = axes[ypos, xpos_residual].imshow(
                     (data_i-model_mean)/std, origin='lower',
-                    vmin=-3, vmax=3, cmap='RdBu_r')
+                    vmin=-3, vmax=3, cmap='RdBu_r', interpolation='None')
 
             if display_chi2:
                 chi = '\n'.join((
@@ -312,7 +314,7 @@ def build_plot_sky_residuals(
             ims[ii, 0] = axes[ii, 0].imshow(
                 small_mean[ii + plotting_config.ylen_offset],
                 origin='lower',
-                norm=norm(vmax=ma, vmin=mi))
+                norm=norm(vmax=ma, vmin=mi), interpolation='None')
 
         for kk, (jj, filter_name) in zip(
                 range(ii+1, len(axes)),
@@ -321,7 +323,7 @@ def build_plot_sky_residuals(
             ims[kk, 0] = axes[kk, 0].imshow(
                 small_std[jj + plotting_config.ylen_offset],
                 origin='lower',
-                norm=norm(vmax=ma, vmin=mi))
+                norm=norm(vmax=ma, vmin=mi), interpolation='None')
 
         if overwrite_model is not None:
             ii, jj = overwrite_model[0]
@@ -330,7 +332,8 @@ def build_plot_sky_residuals(
             mean, _ = get_position_or_samples_of_model(
                 position_or_samples, model)
             axes[ii, jj].set_title(name)
-            ims[ii, jj] = axes[ii, jj].imshow(mean, origin='lower')
+            ims[ii, jj] = axes[ii, jj].imshow(
+                mean, origin='lower', interpolation='None')
 
         for ax, im in zip(axes.flatten(), ims.flatten()):
             if not isinstance(im, int):
@@ -381,7 +384,7 @@ def build_plot_model_samples(
         for axi in axes:
             for ax, fld in zip(axi.flatten(), samps_big):
                 im = ax.imshow(fld, origin='lower', extent=extent,
-                               norm=norm(vmin=vmin, vmax=vmax))
+                               norm=norm(vmin=vmin, vmax=vmax), interpolation='None')
                 fig.colorbar(im, ax=ax, shrink=0.7)
 
         fig.tight_layout()
@@ -426,8 +429,9 @@ def build_color_components_plotting(
 
         fig, axes = plt.subplots(2, N_comps, figsize=(4*N_comps, 6))
         for ax, cor_comps, comps in zip(axes.T, correlated_mean, components_mean):
-            im0 = ax[0].imshow(cor_comps, origin='lower', norm=LogNorm())
-            im1 = ax[1].imshow(comps, origin='lower')
+            im0 = ax[0].imshow(cor_comps, origin='lower',
+                               norm=LogNorm(), interpolation='None')
+            im1 = ax[1].imshow(comps, origin='lower', interpolation='None')
             plt.colorbar(im0, ax=ax[0])
             plt.colorbar(im1, ax=ax[1])
             ax[0].set_title('Correlated Comps')
@@ -471,53 +475,51 @@ def _plot_data_data_model_residuals(
     axes[1].set_title('Data model')
     axes[2].set_title('Data - Data model')
     ims[0] = axes[0].imshow(
-        data, origin='lower', norm=norm(vmin=min_d, vmax=max_d))
+        data, origin='lower', norm=norm(vmin=min_d, vmax=max_d), interpolation='None')
     ims[1] = axes[1].imshow(
-        data_model, origin='lower', norm=norm(vmin=min_d, vmax=max_d))
+        data_model, origin='lower', norm=norm(vmin=min_d, vmax=max_d), interpolation='None')
     ims[2] = axes[2].imshow(
-        (data-data_model)/std, origin='lower', vmin=-3, vmax=3, cmap='RdBu_r')
+        (data-data_model)/std, origin='lower', vmin=-3, vmax=3, cmap='RdBu_r', interpolation='None')
 
     return ims
 
 
 def get_alpha_nonpar(lens_system: LensSystem):
-    ll_nonpar, ll_alpha, sl_nonpar, sl_alpha = [
-        lambda _: np.zeros((12, 12)) for ii in range(4)]
-
     llm, slm = (lens_system.lens_plane_model.light_model.nonparametric,
                 lens_system.source_plane_model.light_model.nonparametric)
 
-    if hasattr(llm, 'alpha'):
+    if isinstance(llm, jft.CorrelatedMultiFrequencySky):
         ll_shape = lens_system.lens_plane_model.space.shape
-        ll_alpha = jft.Model(
-            lambda x: llm.alpha(x)[:ll_shape[0], :ll_shape[1]],
-            domain=llm.alpha.domain)
-
-    elif isinstance(llm, jft.CorrelatedMultiFrequencySky):
-        call = llm.spectral_index_distribution
-        ll_shape = lens_system.lens_plane_model.space.shape
-        ll_alpha = jft.Model(
-            lambda x: call(x)[:ll_shape[0], :ll_shape[1]],
+        ll_spectral_index = jft.Model(
+            lambda x: llm.spectral_index_distribution(
+                x)[:ll_shape[0], :ll_shape[1]],
+            domain=llm.domain)
+        ll_nonparametric = jft.Model(
+            lambda x: llm.reference_frequency_correlated_field(
+                x)[:ll_shape[0], :ll_shape[1]],
             domain=llm.domain)
 
-    if hasattr(slm, 'alpha'):
-        sl_alpha = slm.alpha
-        sl_nonpar = slm.spatial
-    elif isinstance(slm, jft.CorrelatedMultiFrequencySky):
-        sl_alpha = slm.spectral_index_distribution
-        sl_nonpar = slm.reference_frequency_distribution
+    if isinstance(slm, jft.CorrelatedMultiFrequencySky):
+        sl_spectral_index = slm.spectral_index_distribution
+        sl_nonparametric = slm.reference_frequency_distribution
 
-        if sl_alpha is None:
-            def sl_alpha(_): return np.zeros((12, 12))
-        if sl_nonpar is None:
-            def sl_nonpar(_): return np.zeros((12, 12))
+        if sl_spectral_index is None:
+            def sl_spectral_index(_): return np.zeros((12, 12))
+        if sl_nonparametric is None:
+            def sl_nonparametric(_): return np.zeros((12, 12))
 
-    try:
-        ll_nonpar = lens_system.lens_plane_model.light_model.parametric[0].nonparametric
-    except:
-        pass
+    elif isinstance(slm, ColorMix):
+        sl_spectral_index = slm.color_matrix
+        sl_nonparametric = jft.Model(
+            lambda x: slm.components(x)[:1],
+            domain=slm.domain)
 
-    return ll_alpha, ll_nonpar, sl_alpha, sl_nonpar
+    return (
+        ll_spectral_index,
+        ll_nonparametric,
+        sl_spectral_index,
+        sl_nonparametric
+    )
 
 
 def build_get_values(
@@ -637,25 +639,35 @@ def build_plot_source(
         axes[0, 1].set_title("Nonparametric correction at I0")
         axes[0, 2].set_title("Spectral index")
         ims[0, 0] = axes[0, 0].imshow(
-            slpar, origin='lower', extent=extent, norm=norm_source_parametric(vmin=min_source))
+            slpar, origin='lower', extent=extent,
+            # norm=norm_source_parametric(vmin=min_source),
+            interpolation='None')
         ims[0, 1] = axes[0, 1].imshow(
-            slnonpar, origin='lower', extent=extent, norm=norm_source_nonparametric())
+            slnonpar, origin='lower', extent=extent,
+            # norm=norm_source_nonparametric(),
+            interpolation='None')
         ims[0, 2] = axes[0, 2].imshow(
-            sla, origin='lower', extent=extent, norm=norm_source_alpha())
+            sla, origin='lower', extent=extent,
+            # norm=norm_source_alpha(),
+            interpolation='None')
 
         axes = axes.flatten()
         ims = ims.flatten()
         for ii, (energy_range, fld) in enumerate(zip(grid.spectral.color_ranges, source_light)):
             energy, energy_unit = energy_range.center.value, energy_range.center.unit
             ii += 3
+            vmin = np.max((min_source, source_light_min))
+            vmax = source_light_max
+            if vmin >= vmax:
+                vmin = vmax = None
+
             axes[ii].set_title(f'{energy} {energy_unit}')
             ims[ii] = axes[ii].imshow(
                 fld,
                 origin='lower',
                 extent=extent,
-                norm=norm_source(
-                    vmin=np.max((min_source, source_light_min)),
-                    vmax=source_light_max))
+                norm=norm_source(vmin=vmin, vmax=vmax),
+                interpolation='None')
 
         for ax, im in zip(axes.flatten(), ims.flatten()):
             if not isinstance(im, int):
@@ -758,24 +770,26 @@ def build_plot_lens_system(
         # Plot lens light
         axes[0, 0].set_title("Lens light alpha")
         axes[0, 1].set_title("Lens light nonpar")
-        ims[0, 0] = axes[0, 0].imshow(lla, origin='lower')
-        ims[0, 1] = axes[0, 1].imshow(lln, origin='lower')
+        ims[0, 0] = axes[0, 0].imshow(
+            lla, origin='lower', interpolation='None')
+        ims[0, 1] = axes[0, 1].imshow(
+            lln, origin='lower', interpolation='None')
 
         # Plot source light
         axes[1, 0].set_title("Source light alpha")
         axes[1, 1].set_title("Source light nonpar")
         ims[1, 0] = axes[1, 0].imshow(sla, origin='lower', extent=source_ext,
-                                      norm=norm_source_alpha())
+                                      norm=norm_source_alpha(), interpolation='None')
         ims[1, 1] = axes[1, 1].imshow(slnonpar, origin='lower', extent=source_ext,
-                                      norm=norm_source_nonparametric())
+                                      norm=norm_source_nonparametric(), interpolation='None')
 
         # Plot mass field
         axes[2, 0].set_title("Mass par")
         axes[2, 1].set_title("Mass nonpar")
         ims[2, 0] = axes[2, 0].imshow(
-            convergence, origin='lower', norm=LogNorm())
+            convergence, origin='lower', norm=LogNorm(), interpolation='None')
         ims[2, 1] = axes[2, 1].imshow(
-            convergence_nonpar, origin='lower', norm=norm_mass())
+            convergence_nonpar, origin='lower', norm=norm_mass(), interpolation='None')
 
         for ii, energy_range in enumerate(grid.spectral.color_ranges):
             energy, energy_unit = energy_range.center.value, energy_range.center.unit
@@ -784,19 +798,19 @@ def build_plot_lens_system(
             ims[0, ii+light_offset] = axes[0, ii+light_offset].imshow(
                 lens_light[ii], origin='lower', extent=lens_ext,
                 norm=norm_lens(vmin=np.max((min_lens, lens_light.min())),
-                               vmax=lens_light.max()))
+                               vmax=lens_light.max()), interpolation='None')
 
             axes[1, ii+light_offset].set_title(f'Source light {ename}')
             ims[1, ii+light_offset] = axes[1, ii+light_offset].imshow(
                 source_light[ii], origin='lower', extent=source_ext,
                 norm=norm_source(vmin=np.max((min_source, source_light.min())),
-                                 vmax=source_light.max()))
+                                 vmax=source_light.max()), interpolation='None')
 
             axes[2, ii+light_offset].set_title(f'Lensed light {ename}')
             ims[2, ii+light_offset] = axes[2, ii+light_offset].imshow(
                 lensed_light[ii], origin='lower', extent=lens_ext,
                 norm=norm_source(vmin=np.max((min_source, lensed_light.min())),
-                                 vmax=lensed_light.max()))
+                                 vmax=lensed_light.max()), interpolation='None')
 
         for ax, im in zip(axes.flatten(), ims.flatten()):
             if not isinstance(im, int):
@@ -846,7 +860,7 @@ def rgb_plotting(
     import matplotlib.font_manager as fm
 
     fig, ax = plt.subplots(1, 1, figsize=(11.5, 10))
-    ax.imshow(rgb, origin='lower', extent=extent_kpc)
+    ax.imshow(rgb, origin='lower', extent=extent_kpc, interpolation='None')
     display_scalebar(ax, dict(size=5, unit='kpc',
                      fontproperties=fm.FontProperties(size=24)))
     display_text(ax,
