@@ -400,10 +400,8 @@ def build_color_components_plotting(
     substring='',
 ):
 
-    if not hasattr(sky_model, 'components'):
-        def _(pos, state=None):
-            return None
-        return _
+    if not isinstance(sky_model, ColorMix):
+        return lambda pos, state: None
 
     colors_directory = join(
         results_directory, f'colors_{substring}' if substring != '' else 'colors')
@@ -498,6 +496,9 @@ def get_alpha_nonpar(lens_system: LensSystem):
             lambda x: llm.reference_frequency_correlated_field(
                 x)[:ll_shape[0], :ll_shape[1]],
             domain=llm.domain)
+    else:
+        def ll_spectral_index(_): return np.zeros((12, 12))
+        def ll_nonparametric(_): return np.zeros((12, 12))
 
     if isinstance(slm, jft.CorrelatedMultiFrequencySky):
         sl_spectral_index = slm.spectral_index_distribution
@@ -511,7 +512,7 @@ def get_alpha_nonpar(lens_system: LensSystem):
     elif isinstance(slm, ColorMix):
         sl_spectral_index = slm.color_matrix
         sl_nonparametric = jft.Model(
-            lambda x: slm.components(x)[:1],
+            lambda x: slm.components(x)[0],
             domain=slm.domain)
 
     return (

@@ -70,8 +70,8 @@ def get_plot(
         plotting_config=residual_plotting_config,
     )
 
-    # plot_color = build_color_components_plotting(
-    #     lens_system.source_plane_model.light_model.nonparametric(), results_directory, substring='source')
+    plot_color = build_color_components_plotting(
+        lens_system.source_plane_model.light_model.nonparametric, results_directory, substring='source')
 
     plot_source = build_plot_source(
         results_directory,
@@ -89,8 +89,7 @@ def get_plot(
         attach_name=''
     )
 
-    # return plot_source, plot_residual, plot_color, plot_lens
-    return plot_source, plot_residual, plot_lens
+    return plot_source, plot_residual, plot_lens, plot_color
 
 
 def plot_prior(
