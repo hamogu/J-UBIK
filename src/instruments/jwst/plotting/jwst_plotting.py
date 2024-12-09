@@ -401,7 +401,7 @@ def build_color_components_plotting(
 ):
 
     if not isinstance(sky_model, ColorMix):
-        return lambda pos, state: None
+        return lambda pos, state=None: None
 
     colors_directory = join(
         results_directory, f'colors_{substring}' if substring != '' else 'colors')

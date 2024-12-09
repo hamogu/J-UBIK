@@ -83,13 +83,13 @@ sky_model_with_keys = jft.Model(
 
 likelihood = connect_likelihood_to_model(likelihood, sky_model_with_keys)
 
-plot_source, plot_residual, plot_lens = get_plot(
+plot_source, plot_residual, plot_lens, plot_color = get_plot(
     results_directory, grid, lens_system, filter_projector, data_dict, sky_model,
     sky_model_with_keys, cfg, parametric_flag, sky_key=SKY_KEY)
 if cfg.get('prior_samples'):
     plot_prior(
         cfg, likelihood, filter_projector, sky_model, sky_model_with_keys,
-        plot_source, plot_lens, data_dict, parametric_flag,
+        plot_source, plot_lens, plot_color, data_dict, parametric_flag,
         sky_key=SKY_KEY,
     )
 
