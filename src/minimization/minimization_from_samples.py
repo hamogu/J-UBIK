@@ -25,8 +25,14 @@ def _initial_position(
     initial_position = jft.random_like(init_key, domain) * sample_multiply
 
     if starting_samples is not None:
-        for random_key in starting_samples.pos.tree.keys():
-            initial_position[random_key] = starting_samples.pos[random_key]
+        starting_pos = starting_samples.pos
+        while isinstance(starting_pos, jft.Vector):
+            starting_pos = starting_pos.tree
+        while isinstance(initial_position, jft.Vector):
+            initial_position = initial_position.tree
+
+        for key in starting_pos.keys():
+            initial_position[key] = starting_pos[key]
 
     return jft.Vector(initial_position)
 
@@ -61,6 +67,7 @@ def minimization_from_initial_samples(
     initial_position = _initial_position(
         init_key,
         likelihood.domain,
+        sample_multiply=kl_settings.sample_multiply,
         starting_samples=starting_samples,
     )
 
@@ -69,7 +76,7 @@ def minimization_from_initial_samples(
     samples, state = jft.optimize_kl(
         likelihood,
         initial_position,
-        random_key=mini_key,
+        key=mini_key,
         callback=kl_settings.callback,
         odir=kl_settings.outputdir,
         n_total_iterations=minimization.n_total_iterations,
@@ -81,3 +88,4 @@ def minimization_from_initial_samples(
         kl_kwargs=minimization.kl_kwargs,
         resume=minimization.resume,
     )
+    return samples, state
