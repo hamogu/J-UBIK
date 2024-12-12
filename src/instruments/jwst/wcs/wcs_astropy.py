@@ -249,6 +249,45 @@ class WcsAstropy(WCS, WcsBase):
         halfside = np.array(self.shape)/2 * np.array(distances)
         return -halfside[0], halfside[0], -halfside[1], halfside[1]
 
+    def relative_coordinates(
+        self,
+        reference_point: Optional[SkyCoord] = None,
+        unit: u.Unit = u.arcsec,
+    ) -> ArrayLike:
+        """Calculate relative angular offsets from a reference point on the
+        sky.
+
+        Computes the spherical offsets between each pixel's world coordinates
+        and a reference position. The offsets are measured in the longitudinal
+        (x) and latitudinal (y) directions using proper spherical geometry.
+
+        Parameters
+        ----------
+        reference_point : astropy.coordinates.SkyCoord, optional
+            Reference position on the sky to measure offsets from.
+            If None, uses `self.center`.
+        unit : astropy.units.Unit, optional
+            Unit for the output coordinates. Default is arcseconds.
+            Must be an angular unit (e.g., degree, arcmin, radian).
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of shape (2, ny, nx) containing the relative coordinates,
+            where axis 0 contains:
+                [0]: longitudinal (x) offsets
+                [1]: latitudinal (y) offsets
+            All offsets are in the specified unit.
+        """
+
+        coordinates_world = self.pixel_to_world(*self.index_grid())
+
+        if reference_point is None:
+            reference_point = self.center
+
+        dlon, dlat = coordinates_world.spherical_offsets_to(reference_point)
+        return np.stack([dlon.to(unit).value, dlat.to(unit).value])
+
 
 def WcsAstropy_from_wcs(wcs: WCS) -> WcsAstropy:
     """

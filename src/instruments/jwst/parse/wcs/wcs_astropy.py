@@ -1,7 +1,9 @@
 from .coordinate_system import (
-    yaml_to_frame_name, CoordinateSystemModel, yaml_to_coordinate_system)
+    yaml_to_frame_name, CoordinateSystemModel, yaml_to_coordinate_system,
+    cfg_to_coordinate_system)
 
 from dataclasses import dataclass
+from typing import Union
 
 import astropy.units as u
 from astropy.coordinates import SkyCoord
@@ -68,14 +70,39 @@ def yaml_to_wcs_model(grid_config: dict) -> WcsModel:
     )
 
 
+def cfg_to_wcs_model(grid_config: dict) -> WcsModel:
+    '''
+    Builds the reconstruction grid from the given configuration.
+
+    The reconstruction grid is defined by the world location, field of view
+    (FOV), shape (resolution), and rotation, all specified in the input
+    configuration. These parameters are extracted from the grid_config dictionary
+    using helper functions.
+    '''
+
+    center = cfg_to_sky_center(grid_config)
+    shape = _cfg_to_shape(grid_config)
+    fov = _cfg_to_fov(grid_config)
+    rotation = _cfg_to_rotation(grid_config)
+    coordinate_system = cfg_to_coordinate_system(grid_config)
+
+    return WcsModel(
+        center=center,
+        shape=shape,
+        fov=fov,
+        rotation=rotation,
+        coordinate_system=coordinate_system
+    )
+
+
 def _yaml_to_sky_center(grid_config: dict) -> SkyCoord:
-    RA_KEY = 'ra'
+    CENTER_RA_KEY = 'ra'
     DEC_KEY = 'dec'
 
     UNIT_KEY = 'unit'
     UNIT_DEFAULT = 'deg'
 
-    ra = grid_config[SKY_CENTER_KEY][RA_KEY]
+    ra = grid_config[SKY_CENTER_KEY][CENTER_RA_KEY]
     dec = grid_config[SKY_CENTER_KEY][DEC_KEY]
     unit = getattr(u, grid_config[SKY_CENTER_KEY].get(UNIT_KEY, UNIT_DEFAULT))
     frame = yaml_to_frame_name(grid_config)
@@ -102,4 +129,102 @@ def _yaml_to_rotation(grid_config: dict) -> u.Quantity:
     rotation = grid_config.get(ROTATION_KEY, ROTATION_DEFAULT)
     unit = getattr(u, grid_config.get(
         ROTATION_UNIT_KEY, ROTATION_UNIT_DEFAULT))
+    return rotation*unit
+
+
+def cfg_to_sky_center(sky_cfg: dict[str, Union[str, float]]) -> SkyCoord:
+    CENTER_RA_KEY = 'image center ra'
+    CENTER_DEC_KEY = 'image center dec'
+    CENTER_FRAME_KEY = 'image center frame'
+    CENTER_RA_UNIT_KEY = 'image center ra unit'
+    CENTER_DEC_UNIT_KEY = 'image center dec unit'
+
+    center_ra = sky_cfg[CENTER_RA_KEY]
+    center_dec = sky_cfg[CENTER_DEC_KEY]
+    center_frame = sky_cfg[CENTER_FRAME_KEY]
+
+    center_ra_unit = sky_cfg.get(CENTER_RA_UNIT_KEY, 'hourangle')
+    center_dec_unit = sky_cfg.get(CENTER_DEC_UNIT_KEY, 'deg')
+    ra_unit = getattr(u, center_ra_unit)
+    dec_unit = getattr(u, center_dec_unit)
+    unit = (ra_unit, dec_unit)
+
+    return SkyCoord(center_ra, center_dec, unit=unit, frame=center_frame)
+
+
+def _cfg_to_shape(grid_config: dict) -> tuple[int, int]:
+    """Get the shape from the grid_config."""
+    NPIX_X_KEY = 'space npix x'
+    NPIX_Y_KEY = 'space npix y'
+    return int(grid_config[NPIX_X_KEY]), int(grid_config[NPIX_Y_KEY])
+
+
+def _resolve_str_to_unit(s):
+    """Convert string of number and unit to radian.
+
+    Support the following units: muas mas as amin deg rad.
+
+    Parameters
+    ----------
+    s : str
+        "muas": u.microarcsecond,
+        "mas": u.milliarcsecond,
+        "as": u.arcsecond,
+        "amin": u.arcmin,
+        "deg": u.deg,
+        "rad": u.rad,
+
+    """
+    units = {
+        "muas": u.microarcsecond,
+        "mas": u.milliarcsecond,
+        "as": u.arcsecond,
+        "amin": u.arcmin,
+        "deg": u.deg,
+        "rad": u.rad,
+    }
+    keys = list(units.keys())
+    keys.sort(key=len)
+    for kk in reversed(keys):
+        nn = -len(kk)
+        unit = s[nn:]
+        if unit == kk:
+            return float(s[:nn]), units[kk]
+    raise RuntimeError("Unit not understood")
+
+
+def _cfg_to_fov(grid_config: dict) -> tuple[u.Quantity, u.Quantity]:
+    '''Convert grid config values from cfg to fov in astropy quantities,
+    following the resolve convention.
+
+    Parameters
+    ----------
+    grid_config: dict
+        - "space fov x" : str (Resolve convention)
+        - "space fov y" : str (Resolve convention)
+
+    Notes
+    -----
+    Resolve convention
+        "muas": u.microarcsecond,
+        "mas": u.milliarcsecond,
+        "as": u.arcsecond,
+        "amin": u.arcmin,
+        "deg": u.deg,
+        "rad": u.rad,
+    '''
+    fov_x, fov_x_unit = _resolve_str_to_unit(grid_config["space fov x"])
+    fov_y, fov_y_unit = _resolve_str_to_unit(grid_config["space fov y"])
+    return fov_x*fov_x_unit, fov_y*fov_y_unit
+
+
+def _cfg_to_rotation(grid_config: dict) -> u.Quantity:
+    """Get the rotation from the grid_config."""
+
+    CFG_ROTATION_KEY = 'space rotation'
+    CFG_ROTATION_UNIT_KEY = 'space rotation unit'
+
+    rotation = grid_config.get(CFG_ROTATION_KEY, ROTATION_DEFAULT)
+    unit = getattr(
+        u, grid_config.get(CFG_ROTATION_UNIT_KEY, ROTATION_UNIT_DEFAULT))
     return rotation*unit

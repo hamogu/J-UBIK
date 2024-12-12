@@ -53,6 +53,22 @@ def yaml_to_coordinate_system(grid_config: dict) -> CoordinateSystemModel:
     return coordinate_system.value
 
 
+def cfg_to_coordinate_system(grid_config: dict) -> CoordinateSystemModel:
+    frame = grid_config.get(FRAME_KEY, FRAME_DEFAULT)
+    equinox = grid_config.get(FRAME_KEY)
+
+    coordinate_system = getattr(CoordinateSystems, frame)
+    _check_if_implemented(coordinate_system)
+
+    if (
+        (equinox is not None) and
+        (coordinate_system in [CoordinateSystems.fk4, CoordinateSystems.f55])
+    ):
+        coordinate_system.equinox = equinox
+
+    return coordinate_system.value
+
+
 def yaml_to_frame_name(grid_config: dict) -> str:
     frame = grid_config.get(FRAME_KEY, FRAME_DEFAULT)
     return frame.lower()

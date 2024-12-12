@@ -395,17 +395,18 @@ def build_plot_model_samples(
 
 
 def build_color_components_plotting(
-    sky_model,
-    results_directory: str,
+    sky_model: ColorMix,
+    results_directory: Optional[str],
     substring='',
 ):
 
     if not isinstance(sky_model, ColorMix):
         return lambda pos, state=None: None
 
-    colors_directory = join(
-        results_directory, f'colors_{substring}' if substring != '' else 'colors')
-    makedirs(colors_directory, exist_ok=True)
+    if results_directory is not None:
+        colors_directory = join(
+            results_directory, f'colors_{substring}' if substring != '' else 'colors')
+        makedirs(colors_directory, exist_ok=True)
     N_comps = len(sky_model.components.components)
 
     def color_plot(
@@ -422,18 +423,24 @@ def build_color_components_plotting(
 
         components_mean, _ = get_position_or_samples_of_model(
             position_or_samples, sky_model.components)
+        mixed_mean, _ = get_position_or_samples_of_model(
+            position_or_samples, sky_model.mixed_components)
         correlated_mean, _ = get_position_or_samples_of_model(
             position_or_samples, sky_model)
 
-        fig, axes = plt.subplots(2, N_comps, figsize=(4*N_comps, 6))
-        for ax, cor_comps, comps in zip(axes.T, correlated_mean, components_mean):
-            im0 = ax[0].imshow(cor_comps, origin='lower',
-                               norm=LogNorm(), interpolation='None')
-            im1 = ax[1].imshow(comps, origin='lower', interpolation='None')
+        fig, axes = plt.subplots(3, N_comps, figsize=(4*N_comps, 9))
+        for ax, cor, comp, mix in zip(
+                axes.T, correlated_mean, components_mean, mixed_mean):
+            im0 = ax[0].imshow(cor, origin='lower', norm=LogNorm(),
+                               interpolation='None')
+            im1 = ax[1].imshow(comp, origin='lower', interpolation='None')
+            im2 = ax[2].imshow(mix-comp, origin='lower', interpolation='None')
             plt.colorbar(im0, ax=ax[0])
             plt.colorbar(im1, ax=ax[1])
-            ax[0].set_title('Correlated Comps')
-            ax[1].set_title('Comps')
+            plt.colorbar(im2, ax=ax[2])
+            ax[0].set_title('corr=exp(Mixed)')
+            ax[1].set_title('Components')
+            ax[2].set_title('Mixed-Components')
 
         plt.tight_layout()
         if isinstance(state_or_none, jft.OptimizeVIState):
