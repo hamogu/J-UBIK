@@ -99,15 +99,26 @@ def _yaml_to_sky_center(grid_config: dict) -> SkyCoord:
     CENTER_RA_KEY = 'ra'
     DEC_KEY = 'dec'
 
-    UNIT_KEY = 'unit'
+    CENTER_UNIT_KEY = 'unit'
+    CENTER_RA_UNIT_KEY = 'ra_unit'
+    CENTER_DEC_UNIT_KEY = 'dec_unit'
     UNIT_DEFAULT = 'deg'
 
     ra = grid_config[SKY_CENTER_KEY][CENTER_RA_KEY]
     dec = grid_config[SKY_CENTER_KEY][DEC_KEY]
-    unit = getattr(u, grid_config[SKY_CENTER_KEY].get(UNIT_KEY, UNIT_DEFAULT))
+    ra_unit = dec_unit = getattr(
+        u, grid_config[SKY_CENTER_KEY].get(CENTER_UNIT_KEY, UNIT_DEFAULT))
+
+    if grid_config[SKY_CENTER_KEY].get(CENTER_RA_UNIT_KEY):
+        ra_unit = getattr(u, grid_config[SKY_CENTER_KEY].get(
+            CENTER_RA_UNIT_KEY))
+    if grid_config[SKY_CENTER_KEY].get(CENTER_DEC_UNIT_KEY):
+        dec_unit = getattr(u, grid_config[SKY_CENTER_KEY].get(
+            CENTER_DEC_UNIT_KEY))
+
     frame = yaml_to_frame_name(grid_config)
 
-    return SkyCoord(ra=ra*unit, dec=dec*unit, frame=frame)
+    return SkyCoord(ra=ra, dec=dec, unit=(ra_unit, dec_unit), frame=frame)
 
 
 def _yaml_to_shape(grid_config: dict) -> tuple[int, int]:
