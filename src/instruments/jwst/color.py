@@ -136,6 +136,9 @@ class ColorRange:
         """Returns a string representation of the ColorRange object."""
         return f'ColorRange([{self.start.energy}, {self.end.energy}])'
 
+    def to_unit(self, unit: u.Unit) -> tuple[u.Quantity]:
+        return self.start.to_unit(unit), self.end.to_unit(unit)
+
 
 class ColorRanges:
     """
@@ -218,3 +221,9 @@ class ColorRanges:
     def __getitem__(self, index: int):
         '''Get color range from bin index.'''
         return self.color_ranges[index]
+
+    def to_unit(self, unit: u.Unit) -> list[tuple[u.Quantity]]:
+        crs = []
+        for ii, cr in enumerate(self.color_ranges):
+            crs.append(cr.to_unit(unit))
+        return crs
