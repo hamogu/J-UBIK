@@ -88,9 +88,11 @@ plot_source, plot_residual, plot_lens, plot_color = get_plot(
     sky_model_with_keys, cfg, parametric_flag, sky_key=SKY_KEY)
 if cfg.get('prior_samples'):
     plot_prior(
-        cfg, likelihood, filter_projector, sky_model, sky_model_with_keys,
-        plot_source, plot_lens, plot_color, data_dict, parametric_flag,
-        sky_key=SKY_KEY,
+        config_path, likelihood, filter_projector,
+        lambda x: 1, lambda x, _, parametric: 1, lambda x: 1,
+        # plot_source, plot_lens, plot_color,
+        data_dict,
+        parametric_flag, sky_key=SKY_KEY,
     )
 
 
@@ -134,5 +136,5 @@ samples, state = jft.optimize_kl(
     draw_linear_kwargs=minpars.draw_linear_kwargs,
     nonlinearly_update_kwargs=minpars.nonlinearly_update_kwargs,
     kl_kwargs=minpars.kl_kwargs,
-    resume=cfg_mini.get('resume', False),
+    resume=False,  # cfg_mini.get('resume', False),
 )

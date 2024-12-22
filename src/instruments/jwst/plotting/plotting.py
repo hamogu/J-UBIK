@@ -93,11 +93,11 @@ def get_plot(
 
 
 def plot_prior(
-    cfg: dict,
+    config_path: str,
     likelihood: jft.Likelihood,
     filter_projector: FilterProjector,
-    sky_model: jft.Model,
-    sky_model_with_keys: jft.Model,
+    # sky_model: jft.Model,
+    # sky_model_with_keys: jft.Model,
     plot_source: callable,
     plot_lens: callable,
     plot_color: callable,
@@ -106,7 +106,28 @@ def plot_prior(
     sky_key: str = 'sky',
     residual_ylen_offset: int = 0,
 ):
+    from charm_lensing.lens_system import build_lens_system
+    from jubik0.instruments.jwst.config_handler import (
+        insert_spaces_in_lensing_new)
+    import yaml
     test_key, _ = random.split(random.PRNGKey(42), 2)
+
+    cfg = yaml.load(open(config_path, 'r'), Loader=yaml.SafeLoader)
+    insert_spaces_in_lensing_new(cfg['sky'])
+
+    lens_system = build_lens_system(cfg['sky'])
+    if cfg['nonparametric_lens']:
+        sky_model = lens_system.get_forward_model_full()
+        parametric_flag = False
+    else:
+        sky_model = lens_system.get_forward_model_parametric()
+        parametric_flag = True
+    sky_model = jft.Model(jft.wrap_left(sky_model, sky_key),
+                          domain=sky_model.domain)
+    sky_model_with_keys = jft.Model(
+        lambda x: filter_projector(sky_model(x)),
+        init=sky_model.init
+    )
 
     if not isinstance(filter_projector.domain, jft.ShapeWithDtype):
         sky_model_new = jft.Model(lambda x: sky_model(x)[sky_key],
