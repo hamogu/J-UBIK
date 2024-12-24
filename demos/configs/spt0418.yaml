@@ -108,48 +108,48 @@ sky:
     lens:
       light:
 
-        # mean:
-        #   constant: 
-        #     value: ['delta', 1.0, 0.0]
-        # multifrequency:
-        #   pcopy: 
-        #     sersicrenormalized_01: # i0*exp(-bn * (r/re)**1/n - 1)
-        #       # ie: ['log_normal', 600, 350.0]  # before error detection
-        #       ie: ['log_normal', 6000, 7000]
-        #       # ie: ['log_normal', 1.0e-5, 1.0e-9]
-        #       re: ['log_normal', 5.0, 0.5]  # 0.88+-0.01 (Jared Cathey et.al. 2023)
-        #       n: ['log_normal', 4.2, 1.2]    # 3.17+-0.02 (Jared Cathey et.al. 2023)
-        #       center: ['normal', [0.0, 0.0], 0.1]
-        #       q: [ 'uniform', 0.8, 1.0]
-        #       theta: ['normal', 0.0, 10.0]
-
         mean:
-          sersic_01: # i0*exp(-bn * (r/re)**1/n - 1)
-            ie: ['delta', 1.0e-2, 0.0]
-            re: ['log_normal', 0.8, 0.5]  # 0.88+-0.01 (Jared Cathey et.al. 2023)
-            n: ['log_normal', 4.2, 1.2]    # 3.17+-0.02 (Jared Cathey et.al. 2023)
-            center: ['normal', [0.0, 0.0], 0.1]
-            q: [ 'uniform', 0.8, 1.0]
-            theta: ['normal', 0.0, 10.0]
+          constant: 
+            value: ['delta', 1.0, 0.0]
         multifrequency:
-          nifty_mf:
-            zero_mode: [0.0, 0.8] # normal
-            spatial_amplitude:
-              model: 'matern'
-              scale: [0.001, 0.0001]    # lognormal
-              cutoff: [0.1, 0.01]       # lognormal
-              loglogslope: [-7.0, 0.2]  # normal
-            # spectral_amplitude:
-            #   model: 'matern'
-            #   scale: [0.08, 0.01]        # lognormal
-            #   cutoff: [0.1, 0.01]       # lognormal
-            #   loglogslope: [-4.0, 0.1]  # normal
-            spectral_index:
-              mean: [1.5, 0.3]         # normal
-              fluctuations: [0.05, 0.01]  # lognormal 
-            # spectral_deviations:
-            #   process: 'wiener'
-            #   sigma: [0.5, 0.2]  # lognormal
+          pcopy: 
+            sersicrenormalized_01: # i0*exp(-bn * (r/re)**1/n - 1)
+              # ie: ['log_normal', 600, 350.0]  # before error detection
+              ie: ['log_normal', 6000, 7000]
+              # ie: ['log_normal', 1.0e-5, 1.0e-9]
+              re: ['log_normal', 5.0, 0.5]  # 0.88+-0.01 (Jared Cathey et.al. 2023)
+              n: ['log_normal', 4.2, 1.2]    # 3.17+-0.02 (Jared Cathey et.al. 2023)
+              center: ['normal', [0.0, 0.0], 0.1]
+              q: [ 'uniform', 0.8, 1.0]
+              theta: ['normal', 0.0, 10.0]
+
+        # mean:
+        #   sersic_01: # i0*exp(-bn * (r/re)**1/n - 1)
+        #     ie: ['delta', 1.0e-2, 0.0]
+        #     re: ['log_normal', 0.8, 0.5]  # 0.88+-0.01 (Jared Cathey et.al. 2023)
+        #     n: ['log_normal', 4.2, 1.2]    # 3.17+-0.02 (Jared Cathey et.al. 2023)
+        #     center: ['normal', [0.0, 0.0], 0.1]
+        #     q: [ 'uniform', 0.8, 1.0]
+        #     theta: ['normal', 0.0, 10.0]
+        # multifrequency:
+        #   nifty_mf:
+        #     zero_mode: [0.0, 0.8] # normal
+        #     spatial_amplitude:
+        #       model: 'matern'
+        #       scale: [0.001, 0.0001]    # lognormal
+        #       cutoff: [0.1, 0.01]       # lognormal
+        #       loglogslope: [-7.0, 0.2]  # normal
+        #     # spectral_amplitude:
+        #     #   model: 'matern'
+        #     #   scale: [0.08, 0.01]        # lognormal
+        #     #   cutoff: [0.1, 0.01]       # lognormal
+        #     #   loglogslope: [-4.0, 0.1]  # normal
+        #     spectral_index:
+        #       mean: [1.5, 0.3]         # normal
+        #       fluctuations: [0.05, 0.01]  # lognormal 
+        #     # spectral_deviations:
+        #     #   process: 'wiener'
+        #     #   sigma: [0.5, 0.2]  # lognormal
 
 
       convergence:
@@ -295,9 +295,9 @@ telescope:
 
 files:
   # res_dir: './results/jwst_lens/mfreworked/all_data_08_newmodel_specIndex'
-  res_dir: './results/jwst_lens/mfreworked/four_data_02_newref'
+  res_dir: './results/jwst_lens/mfreworked/four_data_04_nrefCopiedSersic'
 
-  pretrain_path: './results/jwst_lens/mfreworked/all_data_04_noswap/config.yaml'
+  pretrain_path: './results/jwst_lens/mfreworked/all_data_05_noswap/config.yaml'
 
   filter:
 
@@ -377,7 +377,7 @@ files:
 
 
 minimization:
-    key: 20241224
+    key: 202412242
     resume: False
     n_total_iterations: 20
     pretraining_steps: Null
