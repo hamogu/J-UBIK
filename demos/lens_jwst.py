@@ -64,6 +64,7 @@ else:
     parametric_flag = True
 sky_model = jft.Model(jft.wrap_left(sky_model, SKY_KEY),
                       domain=sky_model.domain)
+
 # # For testing
 # sky_model = build_nifty_mf_from_grid(
 #     grid,
@@ -89,10 +90,9 @@ plot_source, plot_residual, plot_lens, plot_color = get_plot(
 if cfg.get('prior_samples'):
     plot_prior(
         config_path, likelihood, filter_projector,
-        lambda x: 1, lambda x, _, parametric: 1, lambda x: 1,
         # plot_source, plot_lens, plot_color,
-        data_dict,
-        parametric_flag, sky_key=SKY_KEY,
+        plot_residuals=True, plot_source=False, plot_lens=True,
+        data_dict=data_dict, parametric_flag=parametric_flag, sky_key=SKY_KEY,
     )
 
 

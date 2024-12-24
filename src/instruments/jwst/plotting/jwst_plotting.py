@@ -495,10 +495,14 @@ def get_alpha_nonpar(lens_system: LensSystem):
 
     if isinstance(llm, jft.CorrelatedMultiFrequencySky):
         ll_shape = lens_system.lens_plane_model.space.shape
-        ll_spectral_index = jft.Model(
-            lambda x: llm.spectral_index_distribution(
-                x)[:ll_shape[0], :ll_shape[1]],
-            domain=llm.domain)
+        if llm.spectral_index_distribution is not None:
+            ll_spectral_index = jft.Model(
+                lambda x: llm.spectral_index_distribution(
+                    x)[:ll_shape[0], :ll_shape[1]],
+                domain=llm.domain)
+        else:
+            def ll_spectral_index(_): return np.zeros((12, 12))
+
         ll_nonparametric = jft.Model(
             lambda x: llm.reference_frequency_correlated_field(
                 x)[:ll_shape[0], :ll_shape[1]],
