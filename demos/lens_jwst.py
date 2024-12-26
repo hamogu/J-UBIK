@@ -136,5 +136,5 @@ samples, state = jft.optimize_kl(
     draw_linear_kwargs=minpars.draw_linear_kwargs,
     nonlinearly_update_kwargs=minpars.nonlinearly_update_kwargs,
     kl_kwargs=minpars.kl_kwargs,
-    resume=False,  # cfg_mini.get('resume', False),
+    resume=cfg_mini.get('resume', False),
 )

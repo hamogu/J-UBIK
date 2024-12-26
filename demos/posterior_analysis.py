@@ -79,10 +79,31 @@ samples = load_samples(results_directory)
 likelihood, filter_projector, data_dict = build_jwst_likelihoods(
     cfg, grid, sky_model, sky_key=SKY_KEY)
 
-rotation_models = {k: v['data_model'].rotation_and_shift
-                   for k, v in data_dict.items()}
+# rotation_models = {k: v['data_model'].rotation_and_shift
+#                    for k, v in data_dict.items()}
+#
+# shifts = {k: jft.mean([v.coordinates.shift_prior(s) for s in samples])
+#           for k, v in rotation_models.items()}
+# rotations = {k: jft.mean([v.coordinates.rotation_prior(s) for s in samples])
+#              for k, v in rotation_models.items()}
 
-shifts = {k: jft.mean([v.coordinates.shift_prior(s) for s in samples])
-          for k, v in rotation_models.items()}
-rotations = {k: jft.mean([v.coordinates.rotation_prior(s) for s in samples])
-             for k, v in rotation_models.items()}
+# lens_lights = lens_system.lens_plane_model.light_model.nonparametric.components
+# sersic = {
+#     'ie': [[] for _ in range(len(lens_lights))],
+#     're': [[] for _ in range(len(lens_lights))],
+#     'n': [[] for _ in range(len(lens_lights))],
+#     'c': [[] for _ in range(len(lens_lights))],
+#     't': [[] for _ in range(len(lens_lights))],
+#     'q': [[] for _ in range(len(lens_lights))],
+# }
+# for s in samples:
+#     for ii, ll in enumerate(lens_lights):
+#         ie, re, n, c, t, q = ll.parametric.prior(s)
+#         sersic['ie'][ii].append(ie)
+#         sersic['re'][ii].append(re)
+#         sersic['n'][ii].append(n)
+#         sersic['c'][ii].append(np.hypot(*c))
+#         sersic['t'][ii].append(t)
+#         sersic['q'][ii].append(q)
+# sersic = {k: np.array(v) for k, v in sersic.items()}
+# sersic_means = {k: np.mean(v, axis=1) for k, v in sersic.items()}
