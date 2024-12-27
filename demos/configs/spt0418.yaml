@@ -304,10 +304,10 @@ telescope:
       #     rotation: ['delta', -1.95823434e-05, 0]
 
 files:
-  res_dir: './results/jwst_lens/mfreworked/all_data_11_FlexibleLens'
+  res_dir: './results/jwst_lens/mfreworked/all_data_12_HybridMass_startfrom11'
   # res_dir: './results/jwst_lens/mfreworked/three_filters_01_test'
 
-  pretrain_path: './results/jwst_lens/mfreworked/all_data_05_noswap/config.yaml'
+  pretrain_path: './results/jwst_lens/mfreworked/all_data_11_FlexibleLens/config.yaml'
 
   filter:
 
@@ -390,7 +390,7 @@ minimization:
     key: 20241224
     resume: False
     n_total_iterations: 25
-    pretraining_steps: Null
+    pretraining_steps: 5
 
     delta:
       switches: [0, 10, 15]

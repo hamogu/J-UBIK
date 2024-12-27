@@ -9,7 +9,8 @@ from jax import random
 
 import nifty8.re as jft
 import jubik0 as ju
-from .config_handler import insert_spaces_in_lensing
+from .config_handler import insert_spaces_in_lensing_new
+from .plotting.jwst_plotting import FieldPlottingConfig
 from charm_lensing.lens_system import build_lens_system, LensSystem
 
 
@@ -17,8 +18,8 @@ def get_pretrain_samples_and_lens_system(pretrain_path: str) -> tuple[jft.Sample
 
     cfg = yaml.load(open(pretrain_path, 'r'), Loader=yaml.SafeLoader)
 
-    insert_spaces_in_lensing(cfg)
-    lens_system = build_lens_system(cfg['lensing'])
+    insert_spaces_in_lensing_new(cfg['sky'])
+    lens_system = build_lens_system(cfg['sky'])
 
     odir = cfg['files']['res_dir']
     LAST_FILENAME = "last.pkl"
@@ -39,8 +40,8 @@ def get_pretrain_data(pretrain_path: str, full_mass=False):
 
     cfg = yaml.load(open(pretrain_path, 'r'), Loader=yaml.SafeLoader)
 
-    insert_spaces_in_lensing(cfg)
-    lens_system = build_lens_system(cfg['lensing'])
+    insert_spaces_in_lensing_new(cfg['sky'])
+    lens_system = build_lens_system(cfg['sky'])
 
     odir = cfg['files']['res_dir']
     LAST_FILENAME = "last.pkl"
@@ -49,7 +50,7 @@ def get_pretrain_data(pretrain_path: str, full_mass=False):
     with open(last_fn, "rb") as f:
         samples, opt_vi_st = pickle.load(f)
 
-    mass = lens_system.lens_plane_model.convergence_model if full_mass else lens_system.lens_plane_model.convergence_model.parametric()
+    mass = lens_system.lens_plane_model.convergence_model if full_mass else lens_system.lens_plane_model.convergence_model.parametric
     lens_mass = jft.mean_and_std([mass(s) for s in samples])
 
     lens_light = lens_system.lens_plane_model.light_model
@@ -65,9 +66,9 @@ def build_plot_pretrain(
     outdir: str,
     data_std: ArrayLike,
     model: jft.Model,
-    plotting_config: dict = {},
+    plotting_config: FieldPlottingConfig,
 ):
-    from jubik0.instruments.jwst.jwst_plotting import (
+    from jubik0.instruments.jwst.plotting.jwst_plotting import (
         _plot_data_data_model_residuals,
         _get_model_samples_or_position)
 
@@ -128,8 +129,9 @@ def pretrain_model(
     cfg_mini: dict,
     data_std: ArrayLike,
     model: jft.Model,
-    plotting_config: dict = {}
+    plotting_config: FieldPlottingConfig,
 ):
+    from os.path import exists
     likelihood = ju.likelihood.build_gaussian_likelihood(
         data=data_std[0], std=data_std[1])
     likelihood = likelihood.amend(
@@ -144,6 +146,10 @@ def pretrain_model(
     model_dir = join(res_dir, model_name)
     plot = build_plot_pretrain(model_dir, data_std, model, plotting_config)
     print(f'Results: {model_dir}')
+    if exists(model_dir):
+        resume = True
+    else:
+        resume = False
     samples, state = jft.optimize_kl(
         likelihood,
         pos_init,
@@ -156,7 +162,7 @@ def pretrain_model(
         draw_linear_kwargs=minpars.draw_linear_kwargs,
         nonlinearly_update_kwargs=minpars.nonlinearly_update_kwargs,
         kl_kwargs=minpars.kl_kwargs,
-        resume=cfg_mini.get('resume', False),
+        resume=resume,
     )
     return samples
 
@@ -179,7 +185,7 @@ def pretrain_lens_system(cfg: dict, lens_system: LensSystem):
             cfg_mini=cfg["minimization"],
             data_std=lens_light,
             model=lens_system.lens_plane_model.light_model,
-            plotting_config=dict(norm=LogNorm),
+            plotting_config=FieldPlottingConfig(norm=LogNorm),
         )
         lens_light_mean = jft.mean(lens_light_samples)
         while isinstance(lens_light_mean, jft.Vector):
@@ -194,7 +200,7 @@ def pretrain_lens_system(cfg: dict, lens_system: LensSystem):
             cfg_mini=cfg["minimization"],
             data_std=lens_mass,
             model=lens_system.lens_plane_model.convergence_model,
-            plotting_config=dict(norm=LogNorm),
+            plotting_config=FieldPlottingConfig(norm=LogNorm),
         )
         lens_mass_mean = jft.mean(lens_mass_samples)
         while isinstance(lens_mass_mean, jft.Vector):
@@ -209,7 +215,7 @@ def pretrain_lens_system(cfg: dict, lens_system: LensSystem):
             cfg_mini=cfg["minimization"],
             data_std=source_light,
             model=lens_system.source_plane_model.light_model,
-            plotting_config=dict(norm=LogNorm),
+            plotting_config=FieldPlottingConfig(norm=LogNorm),
         )
         source_light_mean = jft.mean(source_light_samples)
         while isinstance(source_light_mean, jft.Vector):

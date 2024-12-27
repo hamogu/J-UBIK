@@ -1,4 +1,3 @@
-import yaml
 import argparse
 
 import nifty8.re as jft
@@ -56,6 +55,11 @@ grid = Grid.from_grid_model(yaml_to_grid_model(cfg['sky']['grid']))
 # insert_ubik_energy_in_lensing(cfg, zsource=4.2)
 insert_spaces_in_lensing_new(cfg['sky'])
 lens_system = build_lens_system(cfg['sky'])
+
+
+pretrain_position = pretrain_lens_system(cfg, lens_system)
+exit()
+
 if cfg['nonparametric_lens']:
     sky_model = lens_system.get_forward_model_full()
     parametric_flag = False
