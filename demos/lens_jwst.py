@@ -57,9 +57,6 @@ insert_spaces_in_lensing_new(cfg['sky'])
 lens_system = build_lens_system(cfg['sky'])
 
 
-pretrain_position = pretrain_lens_system(cfg, lens_system)
-exit()
-
 if cfg['nonparametric_lens']:
     sky_model = lens_system.get_forward_model_full()
     parametric_flag = False
