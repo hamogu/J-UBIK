@@ -1,7 +1,7 @@
 cpu: False
 prior_samples: False
 plot_results: True
-nonparametric_lens: False
+nonparametric_lens: True
 max_residuals: 4 # 4 for big run
 no_interactive_plotting: True
 
@@ -37,7 +37,7 @@ sky:
 
     energy_unit: eV
     energy_bin:
-      e_min:
+      e_minFalse:
         - 0.054 # F2100W
 
         - 0.068 # F1800W  # mistake here actually 0.064
@@ -304,10 +304,10 @@ telescope:
       #     rotation: ['delta', -1.95823434e-05, 0]
 
 files:
-  res_dir: './results/jwst_lens/mfreworked/all_data_12_HybridMass_startfrom11'
+  res_dir: './results/jwst_lens/mfreworked/all_data_13_HybridMass'
   # res_dir: './results/jwst_lens/mfreworked/three_filters_01_test'
 
-  pretrain_path: './results/jwst_lens/mfreworked/all_data_11_FlexibleLens/config.yaml'
+  pretrain_path: './results/jwst_lens/mfreworked/all_data_12_HybridMass_startfrom11'
 
   filter:
 
@@ -387,7 +387,7 @@ files:
 
 
 minimization:
-    key: 20241224
+    key: 20241230
     resume: False
     n_total_iterations: 25
     pretraining_steps: 5
