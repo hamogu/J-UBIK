@@ -307,7 +307,7 @@ files:
   res_dir: './results/jwst_lens/mfreworked/all_data_13_HybridMass'
   # res_dir: './results/jwst_lens/mfreworked/three_filters_01_test'
 
-  pretrain_path: './results/jwst_lens/mfreworked/all_data_12_HybridMass_startfrom11'
+  pretrain_path: './results/jwst_lens/mfreworked/all_data_12_HybridMass_startfrom11/config.yaml'
 
   filter:
 
