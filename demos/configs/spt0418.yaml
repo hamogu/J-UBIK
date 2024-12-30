@@ -37,7 +37,7 @@ sky:
 
     energy_unit: eV
     energy_bin:
-      e_minFalse:
+      e_min:
         - 0.054 # F2100W
 
         - 0.068 # F1800W  # mistake here actually 0.064
