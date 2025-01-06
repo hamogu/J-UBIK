@@ -6,10 +6,10 @@
 # %
 
 import numpy as np
-
+from typing import Union
 
 from .wcs.wcs_astropy import WcsAstropy
-from .color import ColorRanges
+from .color import ColorRange, ColorRanges
 
 from .parse.grid import GridModel
 
@@ -31,7 +31,7 @@ class Grid:
     def __init__(
         self,
         spatial: WcsAstropy,
-        spectral: ColorRanges,
+        spectral: Union[ColorRange, ColorRanges],
     ):
         """
         Initialize the Grid with a `spatial` and `spectral` coordinate system.

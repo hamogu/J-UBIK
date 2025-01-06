@@ -139,6 +139,34 @@ class ColorRange:
     def to_unit(self, unit: u.Unit) -> tuple[u.Quantity]:
         return self.start.to_unit(unit), self.end.to_unit(unit)
 
+    @ property
+    def binbounds(self):
+        '''The binbounds of the binned color range.
+
+        Note
+        ----
+        The bins are assumed to be consecutive. Hence, the minimum of each
+        color range gets returned, the maximum of the binbounds is the and the
+        maximum of the color range with the largest mean energy. '''
+        return [self.start, self.end]
+
+    def binbounds_in(self, unit: u.Unit):
+        '''The binbounds of the binned color ranges in the requested unit.
+
+        Note
+        ----
+        The color bins are assumed to be consecutive in energy. Hence, the
+        minimum of each color range gets returned, the maximum of the binbounds
+        is the and the maximum of the color range with the largest mean energy.
+        '''
+        unit_type = {
+            u.physical.length: 'wavelength',
+            u.physical.frequency: 'frequency',
+            u.physical.energy: 'energy'
+        }[unit.physical_type]
+
+        return [getattr(bb, unit_type).to(unit).value for bb in self.binbounds]
+
 
 class ColorRanges:
     """
