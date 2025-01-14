@@ -525,6 +525,9 @@ def get_alpha_nonpar(lens_system: LensSystem):
         sl_nonparametric = jft.Model(
             lambda x: slm.components(x)[0],
             domain=slm.domain)
+    else:
+        def sl_spectral_index(_): return np.zeros((12, 12))
+        def sl_nonparametric(_): return np.zeros((12, 12))
 
     return (
         ll_spectral_index,
