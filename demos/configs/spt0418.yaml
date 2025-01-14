@@ -13,6 +13,7 @@ no_interactive_plotting: True
 # 4) No fixed positions
 # 5) Large Psf
 # 6) Output directory
+# 7) (Optional) Download latest webbpsf and delete stashed Psfs: https://webbpsf.readthedocs.io/en/stable/installation.html
 
 
 sky: 
