@@ -13,7 +13,7 @@ from dataclasses import dataclass
 class GridModel:
     wcs_model: WcsModel
     color_ranges: ColorRanges
-    color_reference_bin: int
+    color_reference_bin: int = 0
 
 
 def yaml_to_grid_model(grid_config: dict) -> GridModel:

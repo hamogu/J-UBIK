@@ -18,7 +18,14 @@ def yaml_to_binned_colors(grid_config: dict) -> ColorRanges:
     color_ranges = []
     emins = grid_config[ENERGY_BIN_KEY][EMIN_KEY]
     emaxs = grid_config[ENERGY_BIN_KEY][EMAX_KEY]
+    shape = grid_config[ENERGY_BIN_KEY].get('shape')
     eunit = getattr(u, grid_config[ENERGY_UNIT_KEY])
+
+    if isinstance(emins, float) and isinstance(emins, float) and shape is not None:
+        ebins = np.linspace(emins, emaxs, shape+1)
+        emins = ebins[:-1]
+        emaxs = ebins[1:]
+
     for emin, emax in zip(emins, emaxs):
         emin, emax = emin*eunit, emax*eunit
         color_ranges.append(ColorRange(Color(emin), Color(emax)))
